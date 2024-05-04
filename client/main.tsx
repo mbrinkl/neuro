@@ -3,7 +3,13 @@ import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import { TicTacToe } from "./games/tictactoe/TicTacToe";
 import { Lobby } from "./components/Lobby";
 import { NotFound } from "./components/NotFound";
-import "./styles.css";
+import "@mantine/core/styles.css";
+
+import { createTheme, MantineProvider } from "@mantine/core";
+
+const theme = createTheme({
+  /** Put your mantine theme override here */
+});
 
 const router = createBrowserRouter([
   {
@@ -21,5 +27,7 @@ const router = createBrowserRouter([
 ]);
 
 createRoot(document.getElementById("app")!).render(
-  <RouterProvider router={router} />
+  <MantineProvider theme={theme}>
+    <RouterProvider router={router} />
+  </MantineProvider>
 );

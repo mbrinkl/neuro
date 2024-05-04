@@ -2,6 +2,7 @@ import usePartySocket from "partysocket/react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import type { IAction } from "../../shared/types";
+import { Button } from "@mantine/core";
 
 export const Lobby = () => {
   const [roomIds, setRoomIds] = useState<string[]>([]);
@@ -32,7 +33,9 @@ export const Lobby = () => {
       {roomIds.map((roomId) => (
         <Link to={`/tictactoe/${roomId}`}>{roomId}</Link>
       ))}
-      <button onClick={() => onCreateClick("tictactoe")}>Create</button>
+      <Button variant="filled" onClick={() => onCreateClick("tictactoe")}>
+        Create
+      </Button>
     </div>
   );
 };

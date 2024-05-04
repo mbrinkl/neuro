@@ -1,9 +1,11 @@
 import { useState } from "react";
 import usePartySocket from "partysocket/react";
-import { doMove, type IGameState } from "../../parties/game";
 import { Link, useParams } from "react-router-dom";
+import "./Game.css";
+import { doMove } from "../../shared/gameLogic";
+import type { IGameState } from "../../shared/types";
 
-export default function Counter() {
+export const Game = () => {
   const { roomId } = useParams();
   const [gameState, setGameState] = useState<IGameState | null>(null);
 
@@ -12,6 +14,15 @@ export default function Counter() {
     party: "game",
     onMessage(evt) {
       setGameState(JSON.parse(evt.data));
+    },
+    onOpen(evt) {
+      console.log("got open", evt);
+    },
+    onError(evt) {
+      console.log("got err", evt);
+    },
+    onClose(evt) {
+      console.log("got close");
     },
   });
 
@@ -36,28 +47,18 @@ export default function Counter() {
       <div>
         players (me {me}):{" "}
         {Object.values(gameState.players).map((p) => (
-          <span>
+          <span key={p.id}>
             | {p.id} - {p.isConnected.toString()} |
           </span>
         ))}
       </div>
-      <div
-        style={{
-          display: "grid",
-          gap: "1px",
-          gridTemplateColumns: "repeat(3, 1fr)",
-          width: "300px",
-        }}
-      >
-        {gameState.board.map((cell, index) => (
-          <div
-            onClick={() => onCellClick(index)}
-            style={{ backgroundColor: "red" }}
-          >
-            {cell}
+      <div id="board">
+        {gameState.board.map((val, index) => (
+          <div key={index} className="cell" onClick={() => onCellClick(index)}>
+            {val}
           </div>
         ))}
       </div>
     </div>
   );
-}
+};

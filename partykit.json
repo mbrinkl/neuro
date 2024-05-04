@@ -1,9 +1,9 @@
 {
   "$schema": "https://www.partykit.io/schema.json",
   "name": "neuro",
-  "main": "parties/lobby.ts",
+  "main": "server/lobby.ts",
   "parties": {
-    "game": "parties/game.ts"
+    "game": "server/game.ts"
   },
   "compatibilityDate": "2024-05-02",
   "serve": {

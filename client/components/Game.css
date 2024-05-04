@@ -1,0 +1,10 @@
+#board {
+  display: grid;
+  gap: 1px;
+  grid-template-columns: repeat(3, 1fr);
+  width: 300px;
+}
+
+.cell {
+  background-color: red;
+}

@@ -1,63 +1,7 @@
 import { verifyToken } from "@clerk/backend";
 import type * as Party from "partykit/server";
-
-const winConditions: number[][] = [
-  [0, 1, 2],
-  [3, 4, 5],
-  [6, 7, 8],
-  [0, 3, 6],
-  [1, 4, 7],
-  [2, 5, 8],
-  [0, 4, 8],
-  [2, 4, 6],
-];
-
-export const isValidMove = (index: number, board: number[]) => {
-  return index >= 0 && index < board.length && board[index] === 0;
-};
-
-export const isVictory = (board: number[], playerId: number): boolean => {
-  const indices = board
-    .map((value, i) => (value === playerId ? i : -1))
-    .filter((index) => index !== -1);
-  return winConditions.some((winCondition) =>
-    winCondition.every((index) => indices.includes(index))
-  );
-};
-
-export const isDraw = (board: number[]) => board.every((cell) => cell !== 0);
-
-export interface IGameMessage {
-  type: string;
-  args: any;
-}
-
-export interface IGameState {
-  players: Record<string, IPlayer>;
-  board: number[];
-  ctx: IGameContext;
-  winner?: number;
-}
-
-export interface IGameContext {
-  currentPlayer: number;
-  numPlayers: number;
-}
-
-export interface IPlayer {
-  id: number;
-  isConnected: boolean;
-}
-
-export const doMove = (
-  gameState: IGameState,
-  index: number,
-  playerId: number
-) => {
-  if (!isValidMove(index, gameState.board)) return gameState;
-  gameState.board[index] = playerId;
-  return gameState;
-};
+import type { IGameMessage, IGameState } from "../shared/types";
+import { doMove, isDraw, isVictory } from "../shared/gameLogic";
 
 export default class Game implements Party.Server {
   gameState: IGameState;
@@ -83,6 +27,12 @@ export default class Game implements Party.Server {
   }
 
   static async onBeforeConnect(request: Party.Request, lobby: Party.Lobby) {
+    const rooms = await this.getAvailableRooms(lobby);
+    console.log("in before connect plox", rooms);
+    if (!rooms.includes(lobby.id)) {
+      return new Response("Not Found", { status: 404 });
+    }
+
     return request;
     // try {
     //   const issuer = "tmp";
@@ -130,6 +80,17 @@ export default class Game implements Party.Server {
         1 + (this.gameState.ctx.currentPlayer % 2);
       this.room.broadcast(JSON.stringify(this.gameState));
     }
+  }
+
+  static async getAvailableRooms(lobby: Party.Lobby): Promise<string[]> {
+    const lobbyParty = lobby.parties.main;
+    const lobbyRoomId = "lobby";
+    const lobbyRoom = lobbyParty.get(lobbyRoomId);
+
+    const data = await lobbyRoom.fetch({
+      method: "GET",
+    });
+    return data.json();
   }
 
   async updateLobby(

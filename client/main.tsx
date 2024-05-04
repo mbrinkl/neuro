@@ -1,7 +1,8 @@
 import { createRoot } from "react-dom/client";
-import Counter from "./components/Counter";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
+import { Game } from "./components/Game";
 import { Lobby } from "./components/Lobby";
+import { NotFound } from "./components/NotFound";
 import "./styles.css";
 
 const router = createBrowserRouter([
@@ -11,7 +12,11 @@ const router = createBrowserRouter([
   },
   {
     path: "/game/:roomId",
-    element: <Counter />,
+    element: <Game />,
+  },
+  {
+    path: "/*",
+    element: <NotFound />,
   },
 ]);
 

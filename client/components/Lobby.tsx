@@ -1,32 +1,35 @@
 import usePartySocket from "partysocket/react";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import type { IAction } from "../../shared/types";
 
 export const Lobby = () => {
   const [roomIds, setRoomIds] = useState<string[]>([]);
+  const navigate = useNavigate();
 
-  usePartySocket({
+  const socket = usePartySocket({
     room: "lobby",
     onMessage(evt) {
-      setRoomIds(JSON.parse(evt.data));
+      const data = JSON.parse(evt.data) as IAction<unknown>;
+      if (data.type === "rooms") {
+        setRoomIds((data as IAction<string[]>).payload);
+      } else if (data.type === "create") {
+        navigate(`/game/${(data as IAction<string>).payload}`);
+      }
     },
   });
 
-  const getId = () => {
-    // const storedId = localStorage.getItem("guest-id");
-    // if (storedId) return storedId;
-    const id = (Math.random() + 1).toString(36).substring(7);
-    // localStorage.setItem("guest-id", id);
-    return id;
+  const onCreateClick = () => {
+    socket.send("create");
   };
 
   return (
     <div>
       <span>Join:</span>
       {roomIds.map((roomId) => (
-        <Link to={`game/${roomId}`}>{roomId}</Link>
+        <Link to={`/game/${roomId}`}>{roomId}</Link>
       ))}
-      <Link to={`game/${getId()}`}>Create</Link>
+      <button onClick={onCreateClick}>Create</button>
     </div>
   );
 };

@@ -1,16 +1,23 @@
 import type * as Party from "partykit/server";
+import type { IAction } from "../shared/types";
 
 export default class Lobby implements Party.Server {
   connections: Record<string, number>;
+  openRooms: string[];
 
   constructor(readonly room: Party.Room) {
     this.connections = {};
+    this.openRooms = ["abcd"];
   }
 
   async onRequest(request: Party.Request) {
     // read from storage
     this.connections =
       this.connections ?? (await this.room.storage.get("connections")) ?? {};
+
+    if (request.method === "GET") {
+      return new Response(JSON.stringify(this.openRooms));
+    }
 
     // update connection count
     if (request.method === "POST") {
@@ -22,16 +29,26 @@ export default class Lobby implements Party.Server {
       if (update.type === "disconnect")
         this.connections[update.roomId] = Math.max(0, count - 1);
 
-      this.room.broadcast(JSON.stringify(this.getRooms()));
+      const val = { type: "rooms", payload: this.getRooms() };
+      this.room.broadcast(JSON.stringify(val));
       await this.room.storage.put("connections", this.connections);
     }
 
-    // send connection counts to requester
-    return new Response(JSON.stringify(this.connections));
+    return new Response(null);
   }
 
   onConnect(conn: Party.Connection, ctx: Party.ConnectionContext) {
-    conn.send(JSON.stringify(this.getRooms()));
+    const val = { type: "rooms", payload: this.getRooms() };
+    conn.send(JSON.stringify(val));
+  }
+
+  onMessage(message: string, sender: Party.Connection) {
+    if (message === "create") {
+      const id = (Math.random() + 1).toString(36).substring(7);
+      this.openRooms.push(id);
+      const action: IAction<string> = { type: "create", payload: id };
+      sender.send(JSON.stringify(action));
+    }
   }
 
   getRooms() {

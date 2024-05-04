@@ -43,11 +43,16 @@ export const Lobby = () => {
   return (
     <div>
       <span>Join:</span>
-      {roomIds.map((roomId) => (
-        <Link to={`/tictactoe/${roomId}`}>{roomId}</Link>
-      ))}
+      {roomIds.map((room) => {
+        const [party, roomId] = room.split("-");
+        return (
+          <Link key={room} to={`/${party}/${roomId}`}>
+            {room}
+          </Link>
+        );
+      })}
       {GAMES.map((name) => (
-        <Button variant="filled" onClick={() => onCreateClick(name)}>
+        <Button key={name} variant="filled" onClick={() => onCreateClick(name)}>
           Create {name}
         </Button>
       ))}

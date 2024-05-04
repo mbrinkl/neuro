@@ -31,7 +31,11 @@ export const doMove = (
   index: number,
   playerId: number
 ) => {
-  if (!isValidMove(index, gameState.board)) return gameState;
+  if (
+    gameState.ctx.currentPlayer !== playerId ||
+    !isValidMove(index, gameState.board)
+  )
+    return gameState;
   gameState.board[index] = playerId;
   return gameState;
 };

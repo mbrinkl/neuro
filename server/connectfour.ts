@@ -1,7 +1,7 @@
 import { verifyToken } from "@clerk/backend";
 import type * as Party from "partykit/server";
-import type { IGameMessage, IGameState } from "../shared/types";
-import { doMove, isDraw, isVictory } from "../shared/gameLogic";
+import type { IGameMessage, IGameState } from "../shared/games/tictactoe/types";
+import { doMove, isDraw, isVictory } from "../shared/games/tictactoe/logic";
 
 export default class ConnectFourServer implements Party.Server {
   gameState: IGameState;

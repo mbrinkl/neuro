@@ -1,8 +1,8 @@
 import { useState } from "react";
 import usePartySocket from "partysocket/react";
 import { Link, useParams } from "react-router-dom";
-import { doMove } from "../../../shared/gameLogic";
-import type { IGameState } from "../../../shared/types";
+import { doMove } from "../../../shared/games/tictactoe/logic";
+import type { IGameState } from "../../../shared/games/tictactoe/types";
 import "./TicTacToe.css";
 
 export const TicTacToe = () => {

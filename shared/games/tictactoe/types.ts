@@ -19,8 +19,3 @@ export interface IPlayer {
   id: number;
   isConnected: boolean;
 }
-
-export interface IAction<T> {
-  type: string;
-  payload: T;
-}

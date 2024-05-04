@@ -1,5 +1,10 @@
 import type * as Party from "partykit/server";
-import type { IAction } from "../shared/types";
+import {
+  LobbyRequest,
+  LobbyCreateResponse,
+  type ILobbyCreateResponse,
+  type ILobbyRoomsResponse,
+} from "../shared/lobby/schema";
 
 export default class Lobby implements Party.Server {
   connections: Record<string, number>;
@@ -33,8 +38,11 @@ export default class Lobby implements Party.Server {
       if (update.type === "disconnect")
         this.connections[key] = Math.max(0, count - 1);
 
-      const val = { type: "rooms", payload: this.getRooms() };
-      this.room.broadcast(JSON.stringify(val));
+      const response: ILobbyRoomsResponse = {
+        type: "rooms",
+        rooms: this.getRooms(),
+      };
+      this.room.broadcast(JSON.stringify(response));
       await this.room.storage.put("connections", this.connections);
     }
 
@@ -42,23 +50,34 @@ export default class Lobby implements Party.Server {
   }
 
   onConnect(conn: Party.Connection, ctx: Party.ConnectionContext) {
-    const val = { type: "rooms", payload: this.getRooms() };
-    conn.send(JSON.stringify(val));
+    const response: ILobbyRoomsResponse = {
+      type: "rooms",
+      rooms: this.getRooms(),
+    };
+    conn.send(JSON.stringify(response));
   }
 
   onMessage(message: string, sender: Party.Connection) {
-    const action: IAction<unknown> = JSON.parse(message);
-    if (action.type === "create") {
-      console.log("in it", action);
-      const party = (action as IAction<string>).payload;
-      const id = (Math.random() + 1).toString(36).substring(7);
-      this.openRooms.push(id);
-      const response: IAction<{ party: string; roomId: string }> = {
-        type: "create",
-        payload: { party, roomId: id },
-      };
-      sender.send(JSON.stringify(response));
+    const result = LobbyRequest.safeParse(JSON.parse(message));
+    if (result.success) {
+      const data = result.data;
+      switch (data.type) {
+        case "create":
+          this.createRoom(data.party, sender);
+          break;
+      }
     }
+  }
+
+  createRoom(party: string, sender: Party.Connection) {
+    const roomId = (Math.random() + 1).toString(36).substring(7);
+    this.openRooms.push(roomId);
+    const response: ILobbyCreateResponse = {
+      type: "create",
+      party,
+      roomId,
+    };
+    sender.send(JSON.stringify(response));
   }
 
   getRooms() {

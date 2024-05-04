@@ -1,17 +1,17 @@
 import { useState } from "react";
 import usePartySocket from "partysocket/react";
 import { Link, useParams } from "react-router-dom";
-import "./Game.css";
-import { doMove } from "../../shared/gameLogic";
-import type { IGameState } from "../../shared/types";
+import { doMove } from "../../../shared/gameLogic";
+import type { IGameState } from "../../../shared/types";
+import "./TicTacToe.css";
 
-export const Game = () => {
+export const TicTacToe = () => {
   const { roomId } = useParams();
   const [gameState, setGameState] = useState<IGameState | null>(null);
 
   const socket = usePartySocket({
     room: roomId,
-    party: "game",
+    party: "tictactoe",
     onMessage(evt) {
       setGameState(JSON.parse(evt.data));
     },

@@ -3,7 +3,7 @@ import type * as Party from "partykit/server";
 import type { IGameMessage, IGameState } from "../shared/types";
 import { doMove, isDraw, isVictory } from "../shared/gameLogic";
 
-export default class Game implements Party.Server {
+export default class TicTacToeServer implements Party.Server {
   gameState: IGameState;
 
   constructor(readonly room: Party.Room) {
@@ -105,6 +105,7 @@ export default class Game implements Party.Server {
       method: "POST",
       body: JSON.stringify({
         type,
+        party: "tictactoe",
         connectionId: connection.id,
         roomId: this.room.id,
       }),
@@ -112,4 +113,4 @@ export default class Game implements Party.Server {
   }
 }
 
-Game satisfies Party.Worker;
+TicTacToeServer satisfies Party.Worker;

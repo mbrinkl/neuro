@@ -3,7 +3,8 @@
   "name": "neuro",
   "main": "server/lobby.ts",
   "parties": {
-    "game": "server/game.ts"
+    "tictactoe": "server/tictactoe.ts",
+    "connectfour": "server/connectfour.ts"
   },
   "compatibilityDate": "2024-05-02",
   "serve": {

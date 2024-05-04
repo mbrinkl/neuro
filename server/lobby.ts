@@ -21,13 +21,17 @@ export default class Lobby implements Party.Server {
 
     // update connection count
     if (request.method === "POST") {
-      const update = (await request.json()) as { roomId: string; type: string };
-      const count = this.connections[update.roomId] ?? 0;
+      const update = (await request.json()) as {
+        party: string;
+        roomId: string;
+        type: string;
+      };
+      const key = `${update.party}-${update.roomId}`;
+      const count = this.connections[key] ?? 0;
 
-      if (update.type === "connect")
-        this.connections[update.roomId] = count + 1;
+      if (update.type === "connect") this.connections[key] = count + 1;
       if (update.type === "disconnect")
-        this.connections[update.roomId] = Math.max(0, count - 1);
+        this.connections[key] = Math.max(0, count - 1);
 
       const val = { type: "rooms", payload: this.getRooms() };
       this.room.broadcast(JSON.stringify(val));
@@ -43,11 +47,17 @@ export default class Lobby implements Party.Server {
   }
 
   onMessage(message: string, sender: Party.Connection) {
-    if (message === "create") {
+    const action: IAction<unknown> = JSON.parse(message);
+    if (action.type === "create") {
+      console.log("in it", action);
+      const party = (action as IAction<string>).payload;
       const id = (Math.random() + 1).toString(36).substring(7);
       this.openRooms.push(id);
-      const action: IAction<string> = { type: "create", payload: id };
-      sender.send(JSON.stringify(action));
+      const response: IAction<{ party: string; roomId: string }> = {
+        type: "create",
+        payload: { party, roomId: id },
+      };
+      sender.send(JSON.stringify(response));
     }
   }
 

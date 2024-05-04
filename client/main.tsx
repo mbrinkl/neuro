@@ -1,6 +1,6 @@
 import { createRoot } from "react-dom/client";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
-import { Game } from "./components/Game";
+import { TicTacToe } from "./games/tictactoe/TicTacToe";
 import { Lobby } from "./components/Lobby";
 import { NotFound } from "./components/NotFound";
 import "./styles.css";
@@ -11,8 +11,8 @@ const router = createBrowserRouter([
     element: <Lobby />,
   },
   {
-    path: "/game/:roomId",
-    element: <Game />,
+    path: "/tictactoe/:roomId",
+    element: <TicTacToe />,
   },
   {
     path: "/*",

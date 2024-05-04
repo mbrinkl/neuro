@@ -14,22 +14,25 @@ export const Lobby = () => {
       if (data.type === "rooms") {
         setRoomIds((data as IAction<string[]>).payload);
       } else if (data.type === "create") {
-        navigate(`/game/${(data as IAction<string>).payload}`);
+        const { party, roomId } = (
+          data as IAction<{ party: string; roomId: string }>
+        ).payload;
+        navigate(`/${party}/${roomId}`);
       }
     },
   });
 
-  const onCreateClick = () => {
-    socket.send("create");
+  const onCreateClick = (party: string) => {
+    socket.send(JSON.stringify({ type: "create", payload: party }));
   };
 
   return (
     <div>
       <span>Join:</span>
       {roomIds.map((roomId) => (
-        <Link to={`/game/${roomId}`}>{roomId}</Link>
+        <Link to={`/tictactoe/${roomId}`}>{roomId}</Link>
       ))}
-      <button onClick={onCreateClick}>Create</button>
+      <button onClick={() => onCreateClick("tictactoe")}>Create</button>
     </div>
   );
 };

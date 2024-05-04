@@ -11,6 +11,8 @@ export const Lobby = () => {
   const [roomIds, setRoomIds] = useState<string[]>([]);
   const navigate = useNavigate();
 
+  const GAMES: string[] = ["tictactoe", "connectfour"];
+
   const socket = usePartySocket({
     room: "lobby",
     onMessage(evt) {
@@ -43,9 +45,11 @@ export const Lobby = () => {
       {roomIds.map((roomId) => (
         <Link to={`/tictactoe/${roomId}`}>{roomId}</Link>
       ))}
-      <Button variant="filled" onClick={() => onCreateClick("tictactoe")}>
-        Create
-      </Button>
+      {GAMES.map((name) => (
+        <Button variant="filled" onClick={() => onCreateClick(name)}>
+          Create {name}
+        </Button>
+      ))}
     </div>
   );
 };

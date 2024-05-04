@@ -4,7 +4,7 @@ import { Link, useParams } from "react-router-dom";
 import type { IGameState } from "../../../shared/games/tictactoe/types";
 import "./ConnectFour.css";
 
-export const TicTacToe = () => {
+export const ConnectFour = () => {
   const { roomId } = useParams();
   const [gameState, setGameState] = useState<IGameState | null>(null);
 

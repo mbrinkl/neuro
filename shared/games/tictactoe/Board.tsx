@@ -1,35 +1,17 @@
-import { useState } from "react";
-import usePartySocket from "partysocket/react";
-import { Link, useParams } from "react-router-dom";
-import { doMove } from "../../../shared/games/tictactoe/logic";
-import type { IGameState } from "../../../shared/games/tictactoe/types";
 import { Center, SimpleGrid } from "@mantine/core";
+import type { IGameState } from "./types";
+import { Link } from "react-router-dom";
+import { doMove } from "./logic";
 
-export const TicTacToe = () => {
-  const { roomId } = useParams();
-  const [gameState, setGameState] = useState<IGameState | null>(null);
-
-  const socket = usePartySocket({
-    room: roomId,
-    party: "tictactoe",
-    onMessage(evt) {
-      setGameState(JSON.parse(evt.data));
-    },
-    onOpen(evt) {
-      console.log("got open", evt);
-    },
-    onError(evt) {
-      console.log("got err", evt);
-    },
-    onClose(evt) {
-      console.log("got close");
-    },
-  });
-
-  if (!gameState) {
-    return <span>Loading...</span>;
-  }
-
+const Board = ({
+  gameState,
+  setGameState,
+  socket,
+}: {
+  gameState: IGameState;
+  setGameState: any;
+  socket: any;
+}) => {
   const me = gameState.players[socket.id].id;
 
   const onCellClick = (index: number) => {
@@ -80,3 +62,5 @@ export const TicTacToe = () => {
     </div>
   );
 };
+
+export default Board;

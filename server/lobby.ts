@@ -1,7 +1,6 @@
 import type * as Party from "partykit/server";
 import {
   LobbyRequest,
-  LobbyCreateResponse,
   type ILobbyCreateResponse,
   type ILobbyRoomsResponse,
 } from "../shared/lobby/schema";
@@ -13,6 +12,11 @@ export default class Lobby implements Party.Server {
   constructor(readonly room: Party.Room) {
     this.connections = {};
     this.openRooms = ["abcd"];
+  }
+
+  async onStart() {
+    // games.filter((dirent) => dirent.isDirectory()).map((dirent) => dirent.name);
+    // console.log("IN ON START", games);
   }
 
   async onRequest(request: Party.Request) {

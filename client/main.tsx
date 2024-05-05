@@ -1,10 +1,9 @@
 import { createRoot } from "react-dom/client";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import { createTheme, MantineProvider } from "@mantine/core";
-import { TicTacToe } from "./games/tictactoe/TicTacToe";
 import { Lobby } from "./components/Lobby";
 import { NotFound } from "./components/NotFound";
-import { ConnectFour } from "./games/connectfour/ConnectFour";
+import { Game } from "./components/Game";
 import "@mantine/core/styles.css";
 
 const theme = createTheme({
@@ -17,12 +16,8 @@ const router = createBrowserRouter([
     element: <Lobby />,
   },
   {
-    path: "/tictactoe/:roomId",
-    element: <TicTacToe />,
-  },
-  {
-    path: "/connectfour/:roomId",
-    element: <ConnectFour />,
+    path: "/:gameId/:roomId",
+    element: <Game />,
   },
   {
     path: "/*",

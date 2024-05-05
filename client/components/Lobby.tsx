@@ -1,5 +1,5 @@
 import usePartySocket from "partysocket/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Anchor, Button, rem } from "@mantine/core";
 import {
@@ -7,12 +7,11 @@ import {
   type ILobbyCreateRequest,
 } from "../../shared/lobby/schema";
 import { IconSourceCode } from "@tabler/icons-react";
+import { gameDefs } from "../../shared/config";
 
 export const Lobby = () => {
   const [roomIds, setRoomIds] = useState<string[]>([]);
   const navigate = useNavigate();
-
-  const GAMES: string[] = ["tictactoe", "connectfour"];
 
   const socket = usePartySocket({
     room: "lobby",
@@ -32,10 +31,10 @@ export const Lobby = () => {
     },
   });
 
-  const onCreateClick = (party: string) => {
+  const onCreateClick = (gameId: string) => {
     const request: ILobbyCreateRequest = {
       type: "create",
-      party,
+      party: gameId,
     };
     socket.send(JSON.stringify(request));
   };
@@ -51,8 +50,8 @@ export const Lobby = () => {
           </Link>
         );
       })}
-      {GAMES.map((name) => (
-        <Button key={name} variant="filled" onClick={() => onCreateClick(name)}>
+      {gameDefs.map(({ id, name }) => (
+        <Button key={id} variant="filled" onClick={() => onCreateClick(id)}>
           Create {name}
         </Button>
       ))}

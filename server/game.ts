@@ -1,12 +1,6 @@
-import { verifyToken } from "@clerk/backend";
 import type * as Party from "partykit/server";
 import { isDraw, isVictory } from "../shared/games/tictactoe/logic";
-import {
-  gameDefs,
-  type IGameDef,
-  type IGameMessage,
-  type IGameState,
-} from "../shared/config";
+import { gameDefs, type IGameDef, type IGameMessage, type IGameState } from "../shared/config";
 
 export default class TicTacToeServer implements Party.Server {
   gameState: IGameState;
@@ -25,9 +19,7 @@ export default class TicTacToeServer implements Party.Server {
   }
 
   async onStart() {
-    const storedGameState = await this.room.storage.get<IGameState>(
-      "gamestate"
-    );
+    const storedGameState = await this.room.storage.get<IGameState>("gamestate");
     if (storedGameState) {
       this.gameState = storedGameState;
     }
@@ -51,7 +43,7 @@ export default class TicTacToeServer implements Party.Server {
     // }
   }
 
-  onConnect(conn: Party.Connection, ctx: Party.ConnectionContext) {
+  onConnect(conn: Party.Connection) {
     const playerNumber = Object.keys(this.gameState.players).length + 1;
     this.gameState.players[conn.id] = {
       id: playerNumber,
@@ -90,8 +82,7 @@ export default class TicTacToeServer implements Party.Server {
     } else if (isDraw(this.gameState.board)) {
       this.gameState.winner = 0;
     }
-    this.gameState.ctx.currentPlayer =
-      1 + (this.gameState.ctx.currentPlayer % 2);
+    this.gameState.ctx.currentPlayer = 1 + (this.gameState.ctx.currentPlayer % 2);
 
     this.room.broadcast(JSON.stringify(this.gameState));
   }
@@ -107,10 +98,7 @@ export default class TicTacToeServer implements Party.Server {
     return data.json();
   }
 
-  async updateLobby(
-    type: "connect" | "disconnect",
-    connection: Party.Connection
-  ) {
+  async updateLobby(type: "connect" | "disconnect", connection: Party.Connection) {
     const lobbyParty = this.room.context.parties.main;
     const lobbyRoomId = "lobby";
     const lobbyRoom = lobbyParty.get(lobbyRoomId);

@@ -15,21 +15,9 @@ const Board = ({ gameState, playerId, moves }: IBoardContext) => {
           </span>
         ))}
       </div>
-      <SimpleGrid
-        id="board"
-        cols={3}
-        w="300px"
-        spacing="xs"
-        verticalSpacing="xs"
-      >
+      <SimpleGrid id="board" cols={3} w="300px" spacing="xs" verticalSpacing="xs">
         {gameState.board.map((val, index) => (
-          <Center
-            key={index}
-            onClick={() => moves.clickCell(index)}
-            bg="gray"
-            h="100px"
-            style={{ cursor: "pointer" }}
-          >
+          <Center key={index} onClick={() => moves.clickCell(index)} bg="gray" h="100px" style={{ cursor: "pointer" }}>
             {valMap[val]}
           </Center>
         ))}

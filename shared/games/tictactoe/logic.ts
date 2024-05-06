@@ -14,12 +14,8 @@ export const isValidMove = (index: number, board: number[]) => {
 };
 
 export const isVictory = (board: number[], playerId: number): boolean => {
-  const indices = board
-    .map((value, i) => (value === playerId ? i : -1))
-    .filter((index) => index !== -1);
-  return winConditions.some((winCondition) =>
-    winCondition.every((index) => indices.includes(index))
-  );
+  const indices = board.map((value, i) => (value === playerId ? i : -1)).filter((index) => index !== -1);
+  return winConditions.some((winCondition) => winCondition.every((index) => indices.includes(index)));
 };
 
 export const isDraw = (board: number[]) => board.every((cell) => cell !== 0);

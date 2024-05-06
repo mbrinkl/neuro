@@ -1,13 +1,10 @@
+import { gameDefs } from "../../shared/config";
 import usePartySocket from "partysocket/react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Anchor, Button, rem } from "@mantine/core";
-import {
-  LobbyResponse,
-  type ILobbyCreateRequest,
-} from "../../shared/lobby/schema";
+import { LobbyResponse, type ILobbyCreateRequest } from "../../shared/lobby/schema";
 import { IconSourceCode } from "@tabler/icons-react";
-import { gameDefs } from "../../shared/config";
 
 export const Lobby = () => {
   const [roomIds, setRoomIds] = useState<string[]>([]);
@@ -55,11 +52,7 @@ export const Lobby = () => {
           Create {name}
         </Button>
       ))}
-      <Anchor
-        href="https://github.com/mbrinkl/neuro"
-        target="_blank"
-        style={{ display: "flex", alignItems: "center" }}
-      >
+      <Anchor href="https://github.com/mbrinkl/neuro" target="_blank" style={{ display: "flex", alignItems: "center" }}>
         <IconSourceCode
           style={{ width: rem(25), height: rem(25) }}
           stroke={1.5}

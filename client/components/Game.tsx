@@ -22,23 +22,18 @@ export const Game = (props: IGameProps) => {
     onMessage(evt) {
       setGameState(JSON.parse(evt.data));
     },
-    onOpen(evt) {
-      console.log("got open", evt);
-    },
-    onError(evt) {
-      console.log("got err", evt);
-    },
-    onClose(evt) {
-      console.log("got close");
-    },
   });
 
+  if (!gameState) {
+    return <div>Loading...</div>;
+  }
+
   // TODO: not every render
-  let moves: typeof game.moves = {};
+  const moves: typeof game.moves = {};
   for (const [key, value] of Object.entries(game.moves)) {
-    const move = (...args: any[]) => {
+    const move = (...args: unknown[]) => {
       const updatedGameState = JSON.parse(JSON.stringify(gameState));
-      value(updatedGameState, updatedGameState!.players[socket.id].id, ...args);
+      value(updatedGameState, updatedGameState.players[socket.id].id, ...args);
 
       // optimisitic local update
       setGameState(updatedGameState);
@@ -48,18 +43,10 @@ export const Game = (props: IGameProps) => {
     moves[key] = move;
   }
 
-  if (!gameState) {
-    return <div>Loading...</div>;
-  }
-
   return (
     <div>
       <Link to="/">Lobby</Link>
-      <Board
-        gameState={gameState}
-        playerId={gameState.players[socket.id].id}
-        moves={moves}
-      />
+      <Board gameState={gameState} playerId={gameState.players[socket.id].id} moves={moves} />
     </div>
   );
 };

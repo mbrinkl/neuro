@@ -2,7 +2,7 @@ import games from "./games";
 
 export interface IGameMessage {
   type: string;
-  args: any[];
+  args: unknown[];
 }
 
 export interface IGameState {
@@ -32,14 +32,14 @@ export interface IGameDef {
 export interface IBoardContext {
   gameState: IGameState;
   playerId: number;
-  moves: any;
+  moves: Record<string, (args: unknown[]) => void>;
 }
 
 export interface IGameConfig {
   Board: React.ComponentType<IBoardContext>;
   game: {
     initialState: IGameState;
-    moves: { [key: string]: (...args: any[]) => void };
+    moves: Record<string, (...args: unknown[]) => void>;
   };
 }
 

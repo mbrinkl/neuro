@@ -1,9 +1,5 @@
 import type * as Party from "partykit/server";
-import {
-  LobbyRequest,
-  type ILobbyCreateResponse,
-  type ILobbyRoomsResponse,
-} from "../shared/lobby/schema";
+import { LobbyRequest, type ILobbyCreateResponse, type ILobbyRoomsResponse } from "../shared/lobby/schema";
 
 export default class Lobby implements Party.Server {
   connections: Record<string, number>;
@@ -16,8 +12,7 @@ export default class Lobby implements Party.Server {
 
   async onRequest(request: Party.Request) {
     // read from storage
-    this.connections =
-      this.connections ?? (await this.room.storage.get("connections")) ?? {};
+    this.connections = this.connections ?? (await this.room.storage.get("connections")) ?? {};
 
     if (request.method === "GET") {
       return new Response(JSON.stringify(this.openRooms));
@@ -34,8 +29,7 @@ export default class Lobby implements Party.Server {
       const count = this.connections[key] ?? 0;
 
       if (update.type === "connect") this.connections[key] = count + 1;
-      if (update.type === "disconnect")
-        this.connections[key] = Math.max(0, count - 1);
+      if (update.type === "disconnect") this.connections[key] = Math.max(0, count - 1);
 
       const response: ILobbyRoomsResponse = {
         type: "rooms",
@@ -48,7 +42,7 @@ export default class Lobby implements Party.Server {
     return new Response(null);
   }
 
-  onConnect(conn: Party.Connection, ctx: Party.ConnectionContext) {
+  onConnect(conn: Party.Connection) {
     const response: ILobbyRoomsResponse = {
       type: "rooms",
       rooms: this.getRooms(),
@@ -80,7 +74,7 @@ export default class Lobby implements Party.Server {
   }
 
   getRooms() {
-    let rooms: string[] = [];
+    const rooms: string[] = [];
     for (const [key, value] of Object.entries(this.connections)) {
       if (value > 0) {
         rooms.push(key);

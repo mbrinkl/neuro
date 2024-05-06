@@ -15,11 +15,7 @@ const config: IGameConfig = {
     },
     moves: {
       clickCell: (gameState: IGameState, playerId: number, index: number) => {
-        if (
-          gameState.ctx.currentPlayer !== playerId ||
-          !isValidMove(index, gameState.board)
-        )
-          return;
+        if (gameState.ctx.currentPlayer !== playerId || !isValidMove(index, gameState.board)) return;
         gameState.board[index] = playerId;
       },
     },

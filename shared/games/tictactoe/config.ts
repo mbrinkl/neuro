@@ -1,7 +1,6 @@
-import type { IGameConfig } from "../../config";
+import type { IGameConfig, IGameState } from "../../config";
 import Board from "./Board";
 import { isValidMove } from "./logic";
-import type { IGameState } from "./types";
 
 const config: IGameConfig = {
   Board,
@@ -13,7 +12,7 @@ const config: IGameConfig = {
         currentPlayer: 1,
         numPlayers: 2,
       },
-    } as IGameState,
+    },
     moves: {
       clickCell: (gameState: IGameState, playerId: number, index: number) => {
         if (

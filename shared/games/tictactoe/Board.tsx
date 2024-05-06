@@ -1,26 +1,10 @@
 import { Center, SimpleGrid } from "@mantine/core";
-import type { IGameState } from "./types";
-import { Link } from "react-router-dom";
-import { doMove } from "./logic";
+import type { IBoardContext } from "../../config";
+import { valMap } from "./constants";
 
-const Board = ({
-  gameState,
-  playerId,
-  moves,
-}: {
-  gameState: IGameState;
-  playerId: number;
-  moves: any;
-}) => {
-  const valMap: Record<number, string> = {
-    0: "",
-    1: "X",
-    2: "O",
-  };
-
+const Board = ({ gameState, playerId, moves }: IBoardContext) => {
   return (
     <div>
-      <Link to="/">Lobby</Link>
       <div>winner: {gameState.winner}</div>
       <div>current: {gameState.ctx.currentPlayer}</div>
       <div>

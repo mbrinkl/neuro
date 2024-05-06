@@ -1,5 +1,3 @@
-import type { IGameState } from "./types";
-
 const winConditions: number[][] = [
   [0, 1, 2],
   [3, 4, 5],
@@ -25,17 +23,3 @@ export const isVictory = (board: number[], playerId: number): boolean => {
 };
 
 export const isDraw = (board: number[]) => board.every((cell) => cell !== 0);
-
-export const doMove = (
-  gameState: IGameState,
-  index: number,
-  playerId: number
-) => {
-  if (
-    gameState.ctx.currentPlayer !== playerId ||
-    !isValidMove(index, gameState.board)
-  )
-    return gameState;
-  gameState.board[index] = playerId;
-  return gameState;
-};

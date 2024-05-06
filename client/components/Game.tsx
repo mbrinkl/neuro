@@ -1,8 +1,7 @@
 import { useState } from "react";
-import { useParams } from "react-router-dom";
-import type { IGameState } from "../../shared/games/tictactoe/types";
+import { Link, useParams } from "react-router-dom";
 import usePartySocket from "partysocket/react";
-import type { IGameDef } from "../../shared/config";
+import type { IGameDef, IGameState } from "../../shared/config";
 
 interface IGameProps {
   gameDef: IGameDef;
@@ -34,6 +33,7 @@ export const Game = (props: IGameProps) => {
     },
   });
 
+  // TODO: not every render
   let moves: typeof game.moves = {};
   for (const [key, value] of Object.entries(game.moves)) {
     const move = (...args: any[]) => {
@@ -53,10 +53,13 @@ export const Game = (props: IGameProps) => {
   }
 
   return (
-    <Board
-      gameState={gameState}
-      playerId={gameState.players[socket.id].id}
-      moves={moves}
-    />
+    <div>
+      <Link to="/">Lobby</Link>
+      <Board
+        gameState={gameState}
+        playerId={gameState.players[socket.id].id}
+        moves={moves}
+      />
+    </div>
   );
 };

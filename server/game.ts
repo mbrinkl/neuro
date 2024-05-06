@@ -1,8 +1,12 @@
 import { verifyToken } from "@clerk/backend";
 import type * as Party from "partykit/server";
-import type { IGameMessage, IGameState } from "../shared/games/tictactoe/types";
 import { isDraw, isVictory } from "../shared/games/tictactoe/logic";
-import { gameDefs, type IGameDef } from "../shared/config";
+import {
+  gameDefs,
+  type IGameDef,
+  type IGameMessage,
+  type IGameState,
+} from "../shared/config";
 
 export default class TicTacToeServer implements Party.Server {
   gameState: IGameState;

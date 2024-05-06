@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "partykit dev --live",
-    "tsc": "tsc --noEmit",
-    "lint": "eslint ."
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "check": "npm run lint && npm run typecheck"
   },
   "dependencies": {
     "@clerk/backend": "^1.1.1",

@@ -1,9 +1,9 @@
 import type * as Party from "partykit/server";
 import { isDraw, isVictory } from "../shared/games/tictactoe/logic";
-import { gameDefs, type IGameDef, type IGameMessage, type IGameState } from "../shared/config";
+import { gameDefs, type IGameDef, type IGameMessage, type IGame } from "../shared/config";
 
 export default class TicTacToeServer implements Party.Server {
-  gameState: IGameState;
+  game: IGame;
   gameDef: IGameDef;
 
   constructor(readonly room: Party.Room) {
@@ -15,13 +15,19 @@ export default class TicTacToeServer implements Party.Server {
     }
 
     this.gameDef = def;
-    this.gameState = JSON.parse(JSON.stringify(def.config.game.initialState));
+    this.game = {
+      G: JSON.parse(JSON.stringify(def.config.gameStructure.initialState)),
+      ctx: {
+        currentPlayer: 1,
+        numPlayers: 2,
+      },
+    };
   }
 
   async onStart() {
-    const storedGameState = await this.room.storage.get<IGameState>("gamestate");
+    const storedGameState = await this.room.storage.get<IGame>("game");
     if (storedGameState) {
-      this.gameState = storedGameState;
+      this.game = storedGameState;
     }
   }
 
@@ -44,29 +50,29 @@ export default class TicTacToeServer implements Party.Server {
   }
 
   onConnect(conn: Party.Connection) {
-    const playerNumber = Object.keys(this.gameState.players).length + 1;
-    this.gameState.players[conn.id] = {
+    const playerNumber = Object.keys(this.game.G.players).length + 1;
+    this.game.G.players[conn.id] = {
       id: playerNumber,
       isConnected: true,
     };
 
-    conn.send(JSON.stringify(this.gameState));
+    conn.send(JSON.stringify(this.game));
     this.updateLobby("connect", conn);
   }
 
   onClose(conn: Party.Connection<unknown>) {
-    this.gameState.players[conn.id].isConnected = false;
+    this.game.G.players[conn.id].isConnected = false;
     this.updateLobby("disconnect", conn);
   }
 
   onMessage(message: string, sender: Party.Connection) {
-    const player = this.gameState.players[sender.id];
+    const player = this.game.G.players[sender.id];
 
-    if (this.gameState.ctx.currentPlayer !== player.id) {
+    if (this.game.ctx.currentPlayer !== player.id) {
       return;
     }
 
-    const { moves } = this.gameDef.config.game;
+    const { moves } = this.gameDef.config.gameStructure;
     const gameMessage: IGameMessage = JSON.parse(message);
 
     const move = moves[gameMessage.type];
@@ -74,17 +80,17 @@ export default class TicTacToeServer implements Party.Server {
     // invalid move
     if (move === undefined) return;
 
-    move(this.gameState, player.id, ...gameMessage.args);
+    move(this.game, player.id, ...gameMessage.args);
 
     // TODO: game specific hooks
-    if (isVictory(this.gameState.board, player.id)) {
-      this.gameState.winner = player.id;
-    } else if (isDraw(this.gameState.board)) {
-      this.gameState.winner = 0;
+    if (isVictory(this.game.G.board, player.id)) {
+      this.game.G.winner = player.id;
+    } else if (isDraw(this.game.G.board)) {
+      this.game.ctx.winner = 0;
     }
-    this.gameState.ctx.currentPlayer = 1 + (this.gameState.ctx.currentPlayer % 2);
+    this.game.ctx.currentPlayer = 1 + (this.game.ctx.currentPlayer % 2);
 
-    this.room.broadcast(JSON.stringify(this.gameState));
+    this.room.broadcast(JSON.stringify(this.game));
   }
 
   static async getAvailableRooms(lobby: Party.Lobby): Promise<string[]> {

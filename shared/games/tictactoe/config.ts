@@ -1,22 +1,19 @@
-import type { IGameConfig, IGameState } from "../../config";
+import type { IGame, IGameConfig } from "../../config";
 import Board from "./Board";
 import { isValidMove } from "./logic";
+import type { IGameState } from "./types";
 
-const config: IGameConfig = {
+const config: IGameConfig<IGameState> = {
   Board,
-  game: {
+  gameStructure: {
     initialState: {
       players: {},
       board: [0, 0, 0, 0, 0, 0, 0, 0, 0],
-      ctx: {
-        currentPlayer: 1,
-        numPlayers: 2,
-      },
     },
     moves: {
-      clickCell: (gameState: IGameState, playerId: number, index: number) => {
-        if (gameState.ctx.currentPlayer !== playerId || !isValidMove(index, gameState.board)) return;
-        gameState.board[index] = playerId;
+      clickCell: ({ G, ctx }: IGame<IGameState>, playerId: number, index: number) => {
+        if (ctx.currentPlayer !== playerId || !isValidMove(index, G.board)) return;
+        G.board[index] = playerId;
       },
     },
   },

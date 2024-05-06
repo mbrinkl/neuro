@@ -18,7 +18,7 @@ export default class TicTacToeServer implements Party.Server {
       G: JSON.parse(JSON.stringify(def.config.flow.initialState)),
       ctx: {
         currentPlayer: 1,
-        numPlayers: 2,
+        numPlayers: 0,
       },
     };
   }
@@ -33,9 +33,8 @@ export default class TicTacToeServer implements Party.Server {
   async onConnect(conn: Party.Connection) {
     // TODO: can this be done in onBeforeConnect?
     const rooms = await this.getAvailableRooms();
-    console.log("rooms is...", rooms);
     if (!rooms.includes(this.room.id)) {
-      return conn.close(4004, "Room Not Found");
+      return conn.close(4004, "Room " + this.room.id + " Not Found");
     }
 
     const playerNumber = Object.keys(this.game.G.players).length + 1;
@@ -58,9 +57,7 @@ export default class TicTacToeServer implements Party.Server {
 
   onMessage(message: string, sender: Party.Connection) {
     const gameMessage: IGameMessage = JSON.parse(message);
-
     executeMove(this.game, gameMessage.type, this.gameDef.config.flow, sender.id, gameMessage.args);
-
     this.room.broadcast(JSON.stringify(this.game));
   }
 

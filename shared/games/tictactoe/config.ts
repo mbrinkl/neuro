@@ -8,11 +8,11 @@ const config: IGameConfig<IGameState> = {
   gameStructure: {
     initialState: {
       players: {},
-      board: [0, 0, 0, 0, 0, 0, 0, 0, 0],
+      board: Array(9).fill(0),
     },
     moves: {
-      clickCell: ({ G, ctx }: IGame<IGameState>, playerId: number, index: number) => {
-        if (ctx.currentPlayer !== playerId || !isValidMove(index, G.board)) return;
+      clickCell: ({ G }: IGame<IGameState>, playerId: number, index: number) => {
+        if (!isValidMove(index, G.board)) return;
         G.board[index] = playerId;
       },
     },

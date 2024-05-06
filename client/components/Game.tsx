@@ -28,7 +28,13 @@ export const Game = (props: IGameProps) => {
         // optimisitic local update
         setGame((prev) => {
           const updatedGame = JSON.parse(JSON.stringify(prev));
-          fn(updatedGame, updatedGame.G.players[socket.id].id, ...args);
+          const playerId = updatedGame.G.players[socket.id].id;
+
+          if (updatedGame.ctx.currentPlayer !== playerId) {
+            return prev;
+          }
+
+          fn(updatedGame, playerId, ...args);
           return updatedGame;
         });
         // server update request

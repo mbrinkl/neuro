@@ -58,7 +58,11 @@ export interface IGameConfig<T extends IBaseGameState = any, S extends IBaseMove
 
 export const gameDefs: IGameDef[] = Object.values(games);
 
-export const ExecuteMove = (game: IGame, moveId: string, flow: IGameFlow, senderId: string, moveArgs: unknown[]) => {
+export const getGameRoomId = (gameId: string, roomId: string) => {
+  return gameId + "-" + roomId;
+};
+
+export const executeMove = (game: IGame, moveId: string, flow: IGameFlow, senderId: string, moveArgs: unknown[]) => {
   const player = game.G.players[senderId];
   const { moves } = flow;
   const move = moves[moveId];

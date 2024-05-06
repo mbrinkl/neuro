@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import usePartySocket from "partysocket/react";
-import { type IGameDef, type IGame, ExecuteMove } from "../../shared/config";
+import { type IGameDef, type IGame, executeMove } from "../../shared/config";
 
 interface IGameProps {
   gameDef: IGameDef;
@@ -35,7 +35,7 @@ export const Game = (props: IGameProps) => {
         setGame((prev) => {
           const updatedGame = JSON.parse(JSON.stringify(prev));
           try {
-            ExecuteMove(updatedGame, key, flow, socket.id, args);
+            executeMove(updatedGame, key, flow, socket.id, args);
             return updatedGame;
           } catch (err) {
             console.error((err as Error).message);

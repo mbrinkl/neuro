@@ -1,5 +1,5 @@
 import type * as Party from "partykit/server";
-import { gameDefs, type IGameDef, type IGameMessage, type IGame, ExecuteMove } from "../shared/config";
+import { gameDefs, type IGameDef, type IGameMessage, type IGame, executeMove } from "../shared/config";
 
 export default class TicTacToeServer implements Party.Server {
   game: IGame;
@@ -33,17 +33,10 @@ export default class TicTacToeServer implements Party.Server {
   async onConnect(conn: Party.Connection) {
     // TODO: can this be done in onBeforeConnect?
     const rooms = await this.getAvailableRooms();
-    // if (!rooms.includes(this.room.id)) {
-    //   return conn.close(4004, "Room Not Found");
-    // }
-    // try {
-    //   const issuer = "tmp";
-    //   const token = new URL(request.url).searchParams.get("token") ?? "";
-    //   const session = await verifyToken(token, { issuer });
-    //   return request;
-    // } catch (e) {
-    //   return new Response("Unauthorized", { status: 401 });
-    // }
+    console.log("rooms is...", rooms);
+    if (!rooms.includes(this.room.id)) {
+      return conn.close(4004, "Room Not Found");
+    }
 
     const playerNumber = Object.keys(this.game.G.players).length + 1;
     this.game.G.players[conn.id] = {
@@ -52,21 +45,21 @@ export default class TicTacToeServer implements Party.Server {
     };
 
     conn.send(JSON.stringify(this.game));
-    this.updateLobby("connect", conn);
+    this.updateLobby("connect");
   }
 
   onClose(conn: Party.Connection<unknown>) {
     const player = this.game.G.players[conn.id];
     if (player) {
       player.isConnected = false;
-      this.updateLobby("disconnect", conn);
+      this.updateLobby("disconnect");
     }
   }
 
   onMessage(message: string, sender: Party.Connection) {
     const gameMessage: IGameMessage = JSON.parse(message);
 
-    ExecuteMove(this.game, gameMessage.type, this.gameDef.config.flow, sender.id, gameMessage.args);
+    executeMove(this.game, gameMessage.type, this.gameDef.config.flow, sender.id, gameMessage.args);
 
     this.room.broadcast(JSON.stringify(this.game));
   }
@@ -82,7 +75,7 @@ export default class TicTacToeServer implements Party.Server {
     return data.json();
   }
 
-  async updateLobby(type: "connect" | "disconnect", connection: Party.Connection) {
+  async updateLobby(type: "connect" | "disconnect") {
     const lobbyParty = this.room.context.parties.main;
     const lobbyRoomId = "lobby";
     const lobbyRoom = lobbyParty.get(lobbyRoomId);
@@ -91,8 +84,7 @@ export default class TicTacToeServer implements Party.Server {
       method: "POST",
       body: JSON.stringify({
         type,
-        party: "tictactoe",
-        connectionId: connection.id,
+        gameId: this.gameDef.id,
         roomId: this.room.id,
       }),
     });

@@ -1,5 +1,6 @@
 import type * as Party from "partykit/server";
 import { LobbyRequest, type ILobbyCreateResponse, type ILobbyRoomsResponse } from "../shared/lobby/schema";
+import { getGameRoomId } from "../shared/config";
 
 export default class Lobby implements Party.Server {
   connections: Record<string, number>;
@@ -7,7 +8,7 @@ export default class Lobby implements Party.Server {
 
   constructor(readonly room: Party.Room) {
     this.connections = {};
-    this.openRooms = ["abcd"];
+    this.openRooms = [];
   }
 
   async onRequest(request: Party.Request) {
@@ -21,11 +22,11 @@ export default class Lobby implements Party.Server {
     // update connection count
     if (request.method === "POST") {
       const update = (await request.json()) as {
-        party: string;
+        gameId: string;
         roomId: string;
         type: string;
       };
-      const key = `${update.party}-${update.roomId}`;
+      const key = getGameRoomId(update.gameId, update.roomId);
       const count = this.connections[key] ?? 0;
 
       if (update.type === "connect") this.connections[key] = count + 1;
@@ -56,18 +57,19 @@ export default class Lobby implements Party.Server {
       const data = result.data;
       switch (data.type) {
         case "create":
-          this.createRoom(data.party, sender);
+          this.createRoom(data.gameId, sender);
           break;
       }
     }
   }
 
-  createRoom(party: string, sender: Party.Connection) {
+  createRoom(gameId: string, sender: Party.Connection) {
     const roomId = (Math.random() + 1).toString(36).substring(7);
-    this.openRooms.push(roomId);
+    const gameRoomId = getGameRoomId(gameId, roomId);
+    this.openRooms.push(gameRoomId);
     const response: ILobbyCreateResponse = {
       type: "create",
-      party,
+      gameId,
       roomId,
     };
     sender.send(JSON.stringify(response));

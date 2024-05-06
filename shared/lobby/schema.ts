@@ -7,12 +7,12 @@ export const LobbyRoomsResponse = z.object({
 
 export const LobbyCreateRequest = z.object({
   type: z.literal("create"),
-  party: z.string(),
+  gameId: z.string(),
 });
 
 export const LobbyCreateResponse = z.object({
   type: z.literal("create"),
-  party: z.string(),
+  gameId: z.string(),
   roomId: z.string(),
 });
 

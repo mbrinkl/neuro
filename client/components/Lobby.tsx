@@ -21,7 +21,7 @@ export const Lobby = () => {
             setRoomIds(data.rooms);
             break;
           case "create":
-            navigate(`/${data.party}/${data.roomId}`);
+            navigate(`/${data.gameId}/${data.roomId}`);
             break;
         }
       }
@@ -31,7 +31,7 @@ export const Lobby = () => {
   const onCreateClick = (gameId: string) => {
     const request: ILobbyCreateRequest = {
       type: "create",
-      party: gameId,
+      gameId,
     };
     socket.send(JSON.stringify(request));
   };

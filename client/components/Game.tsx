@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import usePartySocket from "partysocket/react";
-import type { IGameDef, IGame } from "../../shared/config";
+import { type IGameDef, type IGame, ExecuteMove } from "../../shared/config";
 
 interface IGameProps {
   gameDef: IGameDef;
@@ -9,7 +9,7 @@ interface IGameProps {
 
 export const Game = (props: IGameProps) => {
   const { roomId } = useParams();
-  const { Board, gameStructure } = props.gameDef.config;
+  const { Board, flow } = props.gameDef.config;
 
   const [game, setGame] = useState<IGame | null>(null);
   const [error, setError] = useState<string>();
@@ -28,21 +28,19 @@ export const Game = (props: IGameProps) => {
   });
 
   const moves = useMemo(() => {
-    const modifiedMoves: typeof gameStructure.moves = {};
-    for (const [key, fn] of Object.entries(gameStructure.moves)) {
+    const modifiedMoves: typeof flow.moves = {};
+    for (const key of Object.keys(flow.moves)) {
       const move = (...args: unknown[]) => {
         // optimisitic local update
         setGame((prev) => {
           const updatedGame = JSON.parse(JSON.stringify(prev));
-          const playerId = updatedGame.G.players[socket.id].id;
-
-          if (updatedGame.ctx.currentPlayer !== playerId) {
+          try {
+            ExecuteMove(updatedGame, key, flow, socket.id, args);
+            return updatedGame;
+          } catch (err) {
+            console.error((err as Error).message);
             return prev;
           }
-
-          fn(updatedGame, playerId, ...args);
-          gameStructure.onMove?.(updatedGame, playerId);
-          return updatedGame;
         });
         // server update request
         socket.send(JSON.stringify({ type: key, args }));
@@ -50,7 +48,7 @@ export const Game = (props: IGameProps) => {
       modifiedMoves[key] = move;
     }
     return modifiedMoves;
-  }, [gameStructure, socket.id]);
+  }, [flow, socket.id]);
 
   if (error) {
     return <div>Error: {error}</div>;

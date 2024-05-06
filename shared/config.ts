@@ -41,17 +41,41 @@ export interface IGameDef {
   config: IGameConfig;
 }
 
+export interface IGameFlow<T extends IBaseGameState = any, S extends IBaseMoves = any> {
+  initialState: T;
+  moves: {
+    [K in keyof S]: (game: IGame<T>, playerId: number, ...args: Parameters<S[K]>) => void;
+  };
+  onMove?: (game: IGame<T>, playerId: number) => void;
+}
+
 export type IBaseMoves = Record<string, (...args: any[]) => void>;
 
 export interface IGameConfig<T extends IBaseGameState = any, S extends IBaseMoves = any> {
   Board: React.ComponentType<IBoardContext>;
-  gameStructure: {
-    initialState: T;
-    moves: {
-      [K in keyof S]: (game: IGame<T>, playerId: number, ...args: Parameters<S[K]>) => void;
-    };
-    onMove?: (game: IGame<T>, playerId: number) => void;
-  };
+  flow: IGameFlow<T, S>;
 }
 
 export const gameDefs: IGameDef[] = Object.values(games);
+
+export const ExecuteMove = (game: IGame, moveId: string, flow: IGameFlow, senderId: string, moveArgs: unknown[]) => {
+  const player = game.G.players[senderId];
+  const { moves } = flow;
+  const move = moves[moveId];
+
+  if (!player) {
+    throw new Error("Invalid Sender");
+  }
+
+  if (move === undefined) {
+    throw new Error("Invalid move id: " + moveId);
+  }
+
+  if (game.ctx.currentPlayer !== player.id) {
+    throw new Error("Not player " + player.id + "'s turn");
+  }
+
+  move(game, player.id, ...moveArgs);
+
+  flow.onMove?.(game, player.id);
+};

@@ -1,5 +1,5 @@
 import type * as Party from "partykit/server";
-import { gameDefs, type IGameDef, type IGameMessage, type IGame } from "../shared/config";
+import { gameDefs, type IGameDef, type IGameMessage, type IGame, ExecuteMove } from "../shared/config";
 
 export default class TicTacToeServer implements Party.Server {
   game: IGame;
@@ -15,7 +15,7 @@ export default class TicTacToeServer implements Party.Server {
 
     this.gameDef = def;
     this.game = {
-      G: JSON.parse(JSON.stringify(def.config.gameStructure.initialState)),
+      G: JSON.parse(JSON.stringify(def.config.flow.initialState)),
       ctx: {
         currentPlayer: 1,
         numPlayers: 2,
@@ -64,23 +64,9 @@ export default class TicTacToeServer implements Party.Server {
   }
 
   onMessage(message: string, sender: Party.Connection) {
-    const player = this.game.G.players[sender.id];
-
-    if (this.game.ctx.currentPlayer !== player.id) {
-      return;
-    }
-
-    const { moves } = this.gameDef.config.gameStructure;
     const gameMessage: IGameMessage = JSON.parse(message);
 
-    const move = moves[gameMessage.type];
-
-    // invalid move
-    if (move === undefined) return;
-
-    move(this.game, player.id, ...gameMessage.args);
-
-    this.gameDef.config.gameStructure.onMove?.(this.game, player.id);
+    ExecuteMove(this.game, gameMessage.type, this.gameDef.config.flow, sender.id, gameMessage.args);
 
     this.room.broadcast(JSON.stringify(this.game));
   }

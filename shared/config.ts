@@ -50,6 +50,7 @@ export interface IGameConfig<T extends IBaseGameState = any, S extends IBaseMove
     moves: {
       [K in keyof S]: (game: IGame<T>, playerId: number, ...args: Parameters<S[K]>) => void;
     };
+    onMove?: (game: IGame<T>, playerId: number) => void;
   };
 }
 

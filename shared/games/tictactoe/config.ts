@@ -1,6 +1,6 @@
 import type { IGameConfig } from "../../config";
 import Board from "./board";
-import { isValidMove } from "./logic";
+import { isDraw, isValidMove, isVictory } from "./logic";
 import type { IGameState, IMoves } from "./types";
 
 const config: IGameConfig<IGameState, IMoves> = {
@@ -15,6 +15,14 @@ const config: IGameConfig<IGameState, IMoves> = {
         if (ctx.currentPlayer !== playerId || !isValidMove(index, G.board)) return;
         G.board[index] = playerId;
       },
+    },
+    onMove({ G, ctx }, playerId) {
+      if (isVictory(G.board, playerId)) {
+        ctx.winner = playerId;
+      } else if (isDraw(G.board)) {
+        ctx.winner = 0;
+      }
+      ctx.currentPlayer = 1 + (ctx.currentPlayer % 2);
     },
   },
 };

@@ -1,5 +1,4 @@
 import type * as Party from "partykit/server";
-import { isDraw, isVictory } from "../shared/games/tictactoe/logic";
 import { gameDefs, type IGameDef, type IGameMessage, type IGame } from "../shared/config";
 
 export default class TicTacToeServer implements Party.Server {
@@ -34,9 +33,9 @@ export default class TicTacToeServer implements Party.Server {
   async onConnect(conn: Party.Connection) {
     // TODO: can this be done in onBeforeConnect?
     const rooms = await this.getAvailableRooms();
-    if (!rooms.includes(this.room.id)) {
-      return conn.close(4004, "Room Not Found");
-    }
+    // if (!rooms.includes(this.room.id)) {
+    //   return conn.close(4004, "Room Not Found");
+    // }
     // try {
     //   const issuer = "tmp";
     //   const token = new URL(request.url).searchParams.get("token") ?? "";
@@ -57,8 +56,11 @@ export default class TicTacToeServer implements Party.Server {
   }
 
   onClose(conn: Party.Connection<unknown>) {
-    this.game.G.players[conn.id].isConnected = false;
-    this.updateLobby("disconnect", conn);
+    const player = this.game.G.players[conn.id];
+    if (player) {
+      player.isConnected = false;
+      this.updateLobby("disconnect", conn);
+    }
   }
 
   onMessage(message: string, sender: Party.Connection) {
@@ -78,13 +80,7 @@ export default class TicTacToeServer implements Party.Server {
 
     move(this.game, player.id, ...gameMessage.args);
 
-    // TODO: game specific hooks
-    if (isVictory(this.game.G.board, player.id)) {
-      this.game.G.winner = player.id;
-    } else if (isDraw(this.game.G.board)) {
-      this.game.ctx.winner = 0;
-    }
-    this.game.ctx.currentPlayer = 1 + (this.game.ctx.currentPlayer % 2);
+    this.gameDef.config.gameStructure.onMove?.(this.game, player.id);
 
     this.room.broadcast(JSON.stringify(this.game));
   }

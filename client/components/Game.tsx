@@ -41,6 +41,7 @@ export const Game = (props: IGameProps) => {
           }
 
           fn(updatedGame, playerId, ...args);
+          gameStructure.onMove?.(updatedGame, playerId);
           return updatedGame;
         });
         // server update request

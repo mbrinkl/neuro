@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import usePartySocket from "partysocket/react";
 import type { IGameDef, IGameState } from "../../shared/config";
@@ -24,23 +24,26 @@ export const Game = (props: IGameProps) => {
     },
   });
 
+  const moves = useMemo(() => {
+    const modifiedMoves: typeof game.moves = {};
+    for (const [key, fn] of Object.entries(game.moves)) {
+      const move = (...args: unknown[]) => {
+        // optimisitic local update
+        setGameState((prev) => {
+          const updatedGameState = JSON.parse(JSON.stringify(prev));
+          fn(updatedGameState, updatedGameState.players[socket.id].id, ...args);
+          return updatedGameState;
+        });
+        // server update request
+        socket.send(JSON.stringify({ type: key, args }));
+      };
+      modifiedMoves[key] = move;
+    }
+    return modifiedMoves;
+  }, [game, socket.id]);
+
   if (!gameState) {
     return <div>Loading...</div>;
-  }
-
-  // TODO: not every render
-  const moves: typeof game.moves = {};
-  for (const [key, value] of Object.entries(game.moves)) {
-    const move = (...args: unknown[]) => {
-      const updatedGameState = JSON.parse(JSON.stringify(gameState));
-      value(updatedGameState, updatedGameState.players[socket.id].id, ...args);
-
-      // optimisitic local update
-      setGameState(updatedGameState);
-      // server update request
-      socket.send(JSON.stringify({ type: key, args }));
-    };
-    moves[key] = move;
   }
 
   return (

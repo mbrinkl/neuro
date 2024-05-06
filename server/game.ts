@@ -31,14 +31,12 @@ export default class TicTacToeServer implements Party.Server {
     }
   }
 
-  static async onBeforeConnect(request: Party.Request, lobby: Party.Lobby) {
-    const rooms = await this.getAvailableRooms(lobby);
-    console.log("in before connect plox", rooms);
-    // if (!rooms.includes(lobby.id)) {
-    //   return new Response("Not Found", { status: 404 });
-    // }
-
-    return request;
+  async onConnect(conn: Party.Connection) {
+    // TODO: can this be done in onBeforeConnect?
+    const rooms = await this.getAvailableRooms();
+    if (!rooms.includes(this.room.id)) {
+      return conn.close(4004, "Room Not Found");
+    }
     // try {
     //   const issuer = "tmp";
     //   const token = new URL(request.url).searchParams.get("token") ?? "";
@@ -47,9 +45,7 @@ export default class TicTacToeServer implements Party.Server {
     // } catch (e) {
     //   return new Response("Unauthorized", { status: 401 });
     // }
-  }
 
-  onConnect(conn: Party.Connection) {
     const playerNumber = Object.keys(this.game.G.players).length + 1;
     this.game.G.players[conn.id] = {
       id: playerNumber,
@@ -93,8 +89,8 @@ export default class TicTacToeServer implements Party.Server {
     this.room.broadcast(JSON.stringify(this.game));
   }
 
-  static async getAvailableRooms(lobby: Party.Lobby): Promise<string[]> {
-    const lobbyParty = lobby.parties.main;
+  async getAvailableRooms(): Promise<string[]> {
+    const lobbyParty = this.room.context.parties.main;
     const lobbyRoomId = "lobby";
     const lobbyRoom = lobbyParty.get(lobbyRoomId);
 

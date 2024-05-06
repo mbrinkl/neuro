@@ -12,12 +12,18 @@ export const Game = (props: IGameProps) => {
   const { Board, gameStructure } = props.gameDef.config;
 
   const [game, setGame] = useState<IGame | null>(null);
+  const [error, setError] = useState<string>();
 
+  // TODO: should stop from trying to reconnect after getting error?
   const socket = usePartySocket({
     room: props.gameDef.id + "-" + roomId,
     party: "game",
     onMessage(evt) {
+      setError(undefined);
       setGame(JSON.parse(evt.data));
+    },
+    onClose(evt) {
+      setError(evt.reason);
     },
   });
 
@@ -44,6 +50,10 @@ export const Game = (props: IGameProps) => {
     }
     return modifiedMoves;
   }, [gameStructure, socket.id]);
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
 
   if (!game) {
     return <div>Loading...</div>;

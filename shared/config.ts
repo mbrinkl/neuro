@@ -25,6 +25,13 @@ export interface IGameContext {
   winner?: number;
 }
 
+export interface IBoardContext<T extends IBaseGameState = any, S extends IBaseMoves = any> {
+  G: T;
+  ctx: IGameContext;
+  playerId: number;
+  moves: S;
+}
+
 export interface IGameDef {
   id: string;
   name: string;
@@ -34,18 +41,15 @@ export interface IGameDef {
   config: IGameConfig;
 }
 
-export interface IBoardContext<T = any> {
-  G: T;
-  ctx: IGameContext;
-  playerId: number;
-  moves: Record<string, (args: unknown[]) => void>;
-}
+export type IBaseMoves = Record<string, (...args: any[]) => void>;
 
-export interface IGameConfig<T = any> {
+export interface IGameConfig<T extends IBaseGameState = any, S extends IBaseMoves = any> {
   Board: React.ComponentType<IBoardContext>;
   gameStructure: {
     initialState: T;
-    moves: Record<string, (...args: unknown[]) => void>;
+    moves: {
+      [K in keyof S]: (game: IGame<T>, playerId: number, ...args: Parameters<S[K]>) => void;
+    };
   };
 }
 

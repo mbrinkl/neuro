@@ -1,11 +1,10 @@
-import type { IBaseGameState } from "../../config";
+import type { IBaseGameState, IBaseMoves, IBasePlayer } from "../../config";
 
-export interface IPlayer {
-  id: number;
-  isConnected: boolean;
+export interface IMoves extends IBaseMoves {
+  clickCell: (index: number) => void;
 }
 
 export interface IGameState extends IBaseGameState {
-  players: Record<string, IPlayer>;
+  players: Record<string, IBasePlayer>;
   board: number[];
 }

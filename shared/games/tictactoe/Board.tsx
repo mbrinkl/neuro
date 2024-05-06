@@ -1,9 +1,9 @@
 import { Center, SimpleGrid } from "@mantine/core";
 import type { IBoardContext } from "../../config";
 import { valMap } from "./constants";
-import type { IGameState } from "./types";
+import type { IGameState, IMoves } from "./types";
 
-const Board = ({ G, ctx, playerId, moves }: IBoardContext<IGameState>) => {
+const Board = ({ G, ctx, playerId, moves }: IBoardContext<IGameState, IMoves>) => {
   return (
     <div>
       <div>winner: {ctx.winner}</div>

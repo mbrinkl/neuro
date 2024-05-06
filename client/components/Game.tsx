@@ -1,37 +1,24 @@
-import {
-  Suspense,
-  lazy,
-  useEffect,
-  useState,
-  type LazyExoticComponent,
-} from "react";
+import { useState } from "react";
 import { useParams } from "react-router-dom";
 import type { IGameState } from "../../shared/games/tictactoe/types";
 import usePartySocket from "partysocket/react";
+import type { IGameDef } from "../../shared/config";
 
-export const Game = () => {
-  const { gameId, roomId } = useParams();
+interface IGameProps {
+  gameDef: IGameDef;
+}
+
+export const Game = (props: IGameProps) => {
+  const { roomId } = useParams();
+  const { Board, game } = props.gameDef.config;
 
   const [gameState, setGameState] = useState<IGameState | null>(null);
-  const [Board, setBoard] = useState<LazyExoticComponent<
-    React.ComponentType<any>
-  > | null>(null);
-
-  useEffect(() => {
-    // ew
-    if (gameId) {
-      const lazyBoard = lazy(
-        () => import(`../../shared/games/${gameId}/Board.tsx`)
-      );
-      setBoard(lazyBoard);
-    }
-  }, [gameId]);
 
   const socket = usePartySocket({
-    room: roomId,
+    room: props.gameDef.id + "-" + roomId,
     party: "game",
     query: () => ({
-      gameId,
+      gameId: props.gameDef.id,
     }),
     onMessage(evt) {
       setGameState(JSON.parse(evt.data));
@@ -47,17 +34,29 @@ export const Game = () => {
     },
   });
 
-  if (!gameState || !Board) {
+  let moves: typeof game.moves = {};
+  for (const [key, value] of Object.entries(game.moves)) {
+    const move = (...args: any[]) => {
+      const updatedGameState = JSON.parse(JSON.stringify(gameState));
+      value(updatedGameState, updatedGameState!.players[socket.id].id, ...args);
+
+      // optimisitic local update
+      setGameState(updatedGameState);
+      // server update request
+      socket.send(JSON.stringify({ type: key, args }));
+    };
+    moves[key] = move;
+  }
+
+  if (!gameState) {
     return <div>Loading...</div>;
   }
 
   return (
-    <Suspense fallback={<div>LOADING 2</div>}>
-      <Board
-        gameState={gameState}
-        socket={socket}
-        setGameState={setGameState}
-      />
-    </Suspense>
+    <Board
+      gameState={gameState}
+      playerId={gameState.players[socket.id].id}
+      moves={moves}
+    />
   );
 };

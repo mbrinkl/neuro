@@ -1,20 +1,23 @@
 import { verifyToken } from "@clerk/backend";
 import type * as Party from "partykit/server";
 import type { IGameMessage, IGameState } from "../shared/games/tictactoe/types";
-import { doMove, isDraw, isVictory } from "../shared/games/tictactoe/logic";
+import { isDraw, isVictory } from "../shared/games/tictactoe/logic";
+import { gameDefs, type IGameDef } from "../shared/config";
 
 export default class TicTacToeServer implements Party.Server {
   gameState: IGameState;
+  gameDef: IGameDef;
 
   constructor(readonly room: Party.Room) {
-    this.gameState = {
-      players: {},
-      board: [0, 0, 0, 0, 0, 0, 0, 0, 0],
-      ctx: {
-        currentPlayer: 1,
-        numPlayers: 2,
-      },
-    };
+    const [gameId] = room.id.split("-");
+    const def = gameDefs.find((def) => def.id === gameId);
+
+    if (!def) {
+      throw new Error("Game Def not found for " + gameId);
+    }
+
+    this.gameDef = def;
+    this.gameState = JSON.parse(JSON.stringify(def.config.game.initialState));
   }
 
   async onStart() {
@@ -29,9 +32,9 @@ export default class TicTacToeServer implements Party.Server {
   static async onBeforeConnect(request: Party.Request, lobby: Party.Lobby) {
     const rooms = await this.getAvailableRooms(lobby);
     console.log("in before connect plox", rooms);
-    if (!rooms.includes(lobby.id)) {
-      return new Response("Not Found", { status: 404 });
-    }
+    // if (!rooms.includes(lobby.id)) {
+    //   return new Response("Not Found", { status: 404 });
+    // }
 
     return request;
     // try {
@@ -67,19 +70,26 @@ export default class TicTacToeServer implements Party.Server {
       return;
     }
 
+    const { moves } = this.gameDef.config.game;
     const gameMessage: IGameMessage = JSON.parse(message);
-    if (gameMessage.type === "click_cell") {
-      const index = gameMessage.args as number;
-      this.gameState = doMove(this.gameState, index, player.id);
-      if (isVictory(this.gameState.board, player.id)) {
-        this.gameState.winner = player.id;
-      } else if (isDraw(this.gameState.board)) {
-        this.gameState.winner = 0;
-      }
-      this.gameState.ctx.currentPlayer =
-        1 + (this.gameState.ctx.currentPlayer % 2);
-      this.room.broadcast(JSON.stringify(this.gameState));
+
+    const move = moves[gameMessage.type];
+
+    // invalid move
+    if (move === undefined) return;
+
+    move(this.gameState, player.id, ...gameMessage.args);
+
+    // TODO: game specific hooks
+    if (isVictory(this.gameState.board, player.id)) {
+      this.gameState.winner = player.id;
+    } else if (isDraw(this.gameState.board)) {
+      this.gameState.winner = 0;
     }
+    this.gameState.ctx.currentPlayer =
+      1 + (this.gameState.ctx.currentPlayer % 2);
+
+    this.room.broadcast(JSON.stringify(this.gameState));
   }
 
   static async getAvailableRooms(lobby: Party.Lobby): Promise<string[]> {

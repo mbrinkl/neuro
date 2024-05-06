@@ -14,11 +14,6 @@ export default class Lobby implements Party.Server {
     this.openRooms = ["abcd"];
   }
 
-  async onStart() {
-    // games.filter((dirent) => dirent.isDirectory()).map((dirent) => dirent.name);
-    // console.log("IN ON START", games);
-  }
-
   async onRequest(request: Party.Request) {
     // read from storage
     this.connections =

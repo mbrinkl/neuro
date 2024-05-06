@@ -5,22 +5,13 @@ import { doMove } from "./logic";
 
 const Board = ({
   gameState,
-  setGameState,
-  socket,
+  playerId,
+  moves,
 }: {
   gameState: IGameState;
-  setGameState: any;
-  socket: any;
+  playerId: number;
+  moves: any;
 }) => {
-  const me = gameState.players[socket.id].id;
-
-  const onCellClick = (index: number) => {
-    // optimistic local update
-    setGameState((prev) => doMove(JSON.parse(JSON.stringify(prev)), index, me));
-    // send the update to the server
-    socket.send(JSON.stringify({ type: "click_cell", args: index }));
-  };
-
   const valMap: Record<number, string> = {
     0: "",
     1: "X",
@@ -33,7 +24,7 @@ const Board = ({
       <div>winner: {gameState.winner}</div>
       <div>current: {gameState.ctx.currentPlayer}</div>
       <div>
-        players (me {me}):{" "}
+        players (me {playerId}):{" "}
         {Object.values(gameState.players).map((p) => (
           <span key={p.id}>
             | {p.id} - {p.isConnected.toString()} |
@@ -50,7 +41,7 @@ const Board = ({
         {gameState.board.map((val, index) => (
           <Center
             key={index}
-            onClick={() => onCellClick(index)}
+            onClick={() => moves.clickCell(index)}
             bg="gray"
             h="100px"
             style={{ cursor: "pointer" }}

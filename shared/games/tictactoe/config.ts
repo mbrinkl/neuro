@@ -1,5 +1,5 @@
 import type { IGameConfig } from "../../config";
-import Board from "./Board";
+import Board from "./board";
 import { isValidMove } from "./logic";
 import type { IGameState, IMoves } from "./types";
 

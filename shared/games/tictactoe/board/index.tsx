@@ -1,11 +1,18 @@
-import { Center, SimpleGrid } from "@mantine/core";
+import { Center, Flex, SimpleGrid } from "@mantine/core";
 import type { IBoardContext } from "../../../config";
 import { valMap } from "../constants";
 import type { IGameState, IMoves } from "../types";
 
 const Board = ({ G, ctx, playerId, moves }: IBoardContext<IGameState, IMoves>) => {
   return (
-    <div>
+    <Flex direction="column" align="center" justify="center">
+      <SimpleGrid id="board" cols={3} w="300px" spacing="xs" verticalSpacing="xs">
+        {G.board.map((val, index) => (
+          <Center key={index} onClick={() => moves.clickCell(index)} bg="gray" h="100px" style={{ cursor: "pointer" }}>
+            {valMap[val]}
+          </Center>
+        ))}
+      </SimpleGrid>
       <div>winner: {ctx.winner}</div>
       <div>current: {ctx.currentPlayer}</div>
       <div>
@@ -16,14 +23,7 @@ const Board = ({ G, ctx, playerId, moves }: IBoardContext<IGameState, IMoves>) =
           </span>
         ))}
       </div>
-      <SimpleGrid id="board" cols={3} w="300px" spacing="xs" verticalSpacing="xs">
-        {G.board.map((val, index) => (
-          <Center key={index} onClick={() => moves.clickCell(index)} bg="gray" h="100px" style={{ cursor: "pointer" }}>
-            {valMap[val]}
-          </Center>
-        ))}
-      </SimpleGrid>
-    </div>
+    </Flex>
   );
 };
 

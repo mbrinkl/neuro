@@ -2,7 +2,7 @@ import { gameDefs } from "../../shared/config";
 import usePartySocket from "partysocket/react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Anchor, Button, rem } from "@mantine/core";
+import { Anchor, Button, Flex, rem } from "@mantine/core";
 import { LobbyResponse, type ILobbyCreateRequest } from "../../shared/lobby/schema";
 import { IconSourceCode } from "@tabler/icons-react";
 
@@ -40,18 +40,20 @@ export const Lobby = () => {
     <div>
       <span>Join:</span>
       {roomIds.map((room) => {
-        const [party, roomId] = room.split("-");
+        const [gameId, roomId] = room.split("-");
         return (
-          <Link key={room} to={`/${party}/${roomId}`}>
+          <Link key={room} to={`/${gameId}/${roomId}`}>
             {room}
           </Link>
         );
       })}
-      {gameDefs.map(({ id, name }) => (
-        <Button key={id} variant="filled" onClick={() => onCreateClick(id)}>
-          Create {name}
-        </Button>
-      ))}
+      <Flex gap="md" py="md">
+        {gameDefs.map(({ id, name }) => (
+          <Button key={id} variant="filled" onClick={() => onCreateClick(id)}>
+            Create {name}
+          </Button>
+        ))}
+      </Flex>
       <Anchor href="https://github.com/mbrinkl/neuro" target="_blank" style={{ display: "flex", alignItems: "center" }}>
         <IconSourceCode
           style={{ width: rem(25), height: rem(25) }}

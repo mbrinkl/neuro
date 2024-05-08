@@ -32,11 +32,19 @@ export interface IBoardContext<T extends IBaseGameState = any, S extends IBaseMo
   moves: S;
 }
 
+export interface IGameSetup {
+  id: string;
+  description: string;
+  values: any[];
+  defaultValue: any;
+}
+
 export interface IGameDef {
   id: string;
   name: string;
   minPlayers: number;
   maxPlayers: number;
+  setup?: IGameSetup[];
   //config: () => Promise<any>;
   config: IGameConfig;
 }

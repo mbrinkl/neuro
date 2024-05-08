@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import usePartySocket from "partysocket/react";
 import { type IGameDef, type IGame, executeMove } from "../../shared/config";
+import { Loader } from "@mantine/core";
 
 interface IGameProps {
   gameDef: IGameDef;
@@ -10,7 +11,6 @@ interface IGameProps {
 export const Game = (props: IGameProps) => {
   const { roomId } = useParams();
   const { Board, flow } = props.gameDef.config;
-
   const [game, setGame] = useState<IGame | null>(null);
   const [error, setError] = useState<string>();
 
@@ -18,6 +18,9 @@ export const Game = (props: IGameProps) => {
   const socket = usePartySocket({
     room: props.gameDef.id + "-" + roomId,
     party: "game",
+    query: () => ({
+      userId: localStorage.getItem("userId"),
+    }),
     onMessage(evt) {
       setError(undefined);
       setGame(JSON.parse(evt.data));
@@ -55,7 +58,7 @@ export const Game = (props: IGameProps) => {
   }
 
   if (!game) {
-    return <div>Loading...</div>;
+    return <Loader color="blue" />;
   }
 
   return (

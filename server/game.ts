@@ -4,6 +4,8 @@ import { gameDefs, type IGameDef, type IGameMessage, type IGame, executeMove } f
 export default class TicTacToeServer implements Party.Server {
   game: IGame;
   gameDef: IGameDef;
+  roomCreationError?: string;
+  connections: Record<string, string>;
 
   constructor(readonly room: Party.Room) {
     const [gameId] = room.id.split("-");
@@ -21,37 +23,58 @@ export default class TicTacToeServer implements Party.Server {
         numPlayers: 0,
       },
     };
+    this.connections = {};
   }
 
   async onStart() {
+    // Check if the game exists in storage and set
     const storedGameState = await this.room.storage.get<IGame>("game");
     if (storedGameState) {
       this.game = storedGameState;
+      return;
+    }
+
+    // If game does not exist in storage, check if it is a valid game from lobby
+    const rooms = await this.getAvailableRooms();
+    if (!rooms.includes(this.room.id)) {
+      this.roomCreationError = "Room does not exist";
     }
   }
 
-  async onConnect(conn: Party.Connection) {
-    // TODO: can this be done in onBeforeConnect?
-    const rooms = await this.getAvailableRooms();
-    if (!rooms.includes(this.room.id)) {
-      return conn.close(4004, "Room " + this.room.id + " Not Found");
+  async onConnect(conn: Party.Connection, ctx: Party.ConnectionContext) {
+    if (this.roomCreationError) {
+      return conn.close(4000, this.roomCreationError);
     }
 
-    const playerNumber = Object.keys(this.game.G.players).length + 1;
+    const userId = new URL(ctx.request.url).searchParams.get("userId");
+
+    if (!userId) {
+      return conn.close(4000, "No UserID");
+    }
+
+    if (userId === "TODO") {
+      return conn.close(4000, "Cant Join - Invalid Player");
+    }
+
+    this.connections[conn.id] = userId;
+
+    // TODO: assign players by user id?
+    // should probably already be set by onStart
     this.game.G.players[conn.id] = {
-      id: playerNumber,
+      id: this.game.ctx.numPlayers + 1,
       isConnected: true,
     };
+    this.game.ctx.numPlayers++;
 
     conn.send(JSON.stringify(this.game));
-    this.updateLobby("connect");
   }
 
   onClose(conn: Party.Connection<unknown>) {
+    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+    delete this.connections[conn.id];
     const player = this.game.G.players[conn.id];
     if (player) {
       player.isConnected = false;
-      this.updateLobby("disconnect");
     }
   }
 
@@ -70,21 +93,6 @@ export default class TicTacToeServer implements Party.Server {
       method: "GET",
     });
     return data.json();
-  }
-
-  async updateLobby(type: "connect" | "disconnect") {
-    const lobbyParty = this.room.context.parties.main;
-    const lobbyRoomId = "lobby";
-    const lobbyRoom = lobbyParty.get(lobbyRoomId);
-
-    await lobbyRoom.fetch({
-      method: "POST",
-      body: JSON.stringify({
-        type,
-        gameId: this.gameDef.id,
-        roomId: this.room.id,
-      }),
-    });
   }
 }
 

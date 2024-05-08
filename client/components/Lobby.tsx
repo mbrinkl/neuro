@@ -3,37 +3,32 @@ import usePartySocket from "partysocket/react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Anchor, Button, Flex, rem } from "@mantine/core";
-import { LobbyResponse, type ILobbyCreateRequest } from "../../shared/lobby/schema";
+import { LobbyResponse } from "../../shared/lobby/schema";
 import { IconSourceCode } from "@tabler/icons-react";
 
 export const Lobby = () => {
   const [roomIds, setRoomIds] = useState<string[]>([]);
   const navigate = useNavigate();
 
-  const socket = usePartySocket({
+  usePartySocket({
     room: "lobby",
     onMessage(evt) {
       const result = LobbyResponse.safeParse(JSON.parse(evt.data));
       if (result.success) {
         const data = result.data;
         switch (data.type) {
-          case "rooms":
+          case "connect":
             setRoomIds(data.rooms);
             break;
           case "create":
-            navigate(`/${data.gameId}/${data.roomId}`);
-            break;
+            setRoomIds((prev) => [...prev, `${data.gameId}-${data.roomId}`]);
         }
       }
     },
   });
 
   const onCreateClick = (gameId: string) => {
-    const request: ILobbyCreateRequest = {
-      type: "create",
-      gameId,
-    };
-    socket.send(JSON.stringify(request));
+    navigate(`/${gameId}`);
   };
 
   return (

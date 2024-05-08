@@ -5,6 +5,7 @@ import { Lobby } from "./components/Lobby";
 import { NotFound } from "./components/NotFound";
 import { Game } from "./components/Game";
 import { gameDefs } from "../shared/config";
+import { PreGame } from "./components/PreGame";
 import "@mantine/core/styles.css";
 
 const theme = createTheme({
@@ -16,10 +17,16 @@ const router = createBrowserRouter([
     path: "/",
     element: <Lobby />,
   },
-  ...gameDefs.map((gameDef) => ({
-    path: `/${gameDef.id}/:roomId`,
-    element: <Game gameDef={gameDef} />,
-  })),
+  ...gameDefs.flatMap((gameDef) => [
+    {
+      path: `/${gameDef.id}`,
+      element: <PreGame gameDef={gameDef} />,
+    },
+    {
+      path: `/${gameDef.id}/:roomId`,
+      element: <Game gameDef={gameDef} />,
+    },
+  ]),
   {
     path: "/*",
     element: <NotFound />,

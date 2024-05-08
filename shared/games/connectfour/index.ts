@@ -6,7 +6,8 @@ const def: IGameDef = {
   name: "Connect 4",
   config: config,
   minPlayers: 2,
-  maxPlayers: 2,
+  maxPlayers: 4,
+  setup: [],
 };
 
 export default def;

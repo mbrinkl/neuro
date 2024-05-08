@@ -1,4 +1,4 @@
-import type { IGameConfig } from "../../config";
+import type { IGameConfig } from "../../types";
 import Board from "./board";
 import { isDraw, isValidMove, isVictory } from "./logic";
 import type { IGameState, IMoves } from "./types";

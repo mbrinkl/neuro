@@ -1,5 +1,5 @@
 import { Loader } from "@mantine/core";
-import type { IBaseMoves, IBoardContext, IGame } from "../../../shared/config";
+import type { IBaseMoves, IBoardContext, IGame } from "../../../shared/types";
 
 interface IGameBoardProps {
   Board: React.ComponentType<IBoardContext>;

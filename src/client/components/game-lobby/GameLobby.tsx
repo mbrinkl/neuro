@@ -1,6 +1,6 @@
 import { Button, Checkbox, Slider } from "@mantine/core";
 import { useEffect, useState } from "react";
-import type { IGameDef } from "../../../shared/config";
+import type { IGameDef } from "../../../shared/types";
 import usePartySocket from "partysocket/react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { LobbyResponse, type ILobbyCreateRequest, type ILobbyJoinRequest } from "../../../shared/lobby/schema";

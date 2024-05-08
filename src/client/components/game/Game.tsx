@@ -1,8 +1,9 @@
 import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import usePartySocket from "partysocket/react";
-import { type IGameDef, type IGame, executeMove } from "../../../shared/config";
+import { executeMove } from "../../../shared/util";
 import { GameBoard } from "./GameBoard";
+import type { IGame, IGameDef } from "../../../shared/types";
 
 interface IGameProps {
   gameDef: IGameDef;

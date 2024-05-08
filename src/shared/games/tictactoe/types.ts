@@ -1,4 +1,4 @@
-import type { IBaseGameState, IBaseMoves, IBasePlayer } from "../../config";
+import type { IBaseGameState, IBaseMoves, IBasePlayer } from "../../types";
 
 export interface IMoves extends IBaseMoves {
   clickCell: (index: number) => void;

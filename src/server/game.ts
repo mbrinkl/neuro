@@ -1,5 +1,6 @@
 import type * as Party from "partykit/server";
-import { gameDefs, type IGameDef, type IGameMessage, type IGame, executeMove } from "../shared/config";
+import type { IGameDef, IGameMessage, IGame } from "../shared/types";
+import { gameDefs, executeMove } from "../shared/util";
 
 export default class TicTacToeServer implements Party.Server {
   game: IGame;

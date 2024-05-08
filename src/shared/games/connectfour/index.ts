@@ -1,4 +1,4 @@
-import type { IGameDef } from "../../config";
+import type { IGameDef } from "../../types";
 import config from "../tictactoe/config";
 
 const def: IGameDef = {

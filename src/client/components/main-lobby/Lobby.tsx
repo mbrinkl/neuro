@@ -1,4 +1,4 @@
-import { gameDefs } from "../../../shared/config";
+import { gameDefs } from "../../../shared/util";
 import usePartySocket from "partysocket/react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";

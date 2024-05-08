@@ -1,5 +1,5 @@
 import { Center, Flex, SimpleGrid } from "@mantine/core";
-import type { IBoardContext } from "../../../config";
+import type { IBoardContext } from "../../../types";
 import { valMap } from "../constants";
 import type { IGameState, IMoves } from "../types";
 

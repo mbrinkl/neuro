@@ -4,7 +4,7 @@ import { createTheme, MantineProvider } from "@mantine/core";
 import { Lobby } from "./components/main-lobby/Lobby";
 import { NotFound } from "./components/NotFound";
 import { Game } from "./components/game/Game";
-import { gameDefs } from "../shared/config";
+import { gameDefs } from "../shared/util";
 import { GameLobby } from "./components/game-lobby/GameLobby";
 import "@mantine/core/styles.css";
 

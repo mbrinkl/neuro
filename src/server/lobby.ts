@@ -7,32 +7,42 @@ import {
 } from "../shared/lobby/schema";
 
 export default class Lobby implements Party.Server {
-  // options: Party.ServerOptions = {
-  //   hibernate: true,
-  // };
+  options: Party.ServerOptions = {
+    hibernate: true,
+  };
 
   // connectionId: userId
-  connections: Record<string, string>;
+  connections: Record<string, string> | null;
 
-  rooms: {
-    gameId: string;
-    roomId: string;
-    numPlayers: number;
-    state: "open" | "started";
-    players: {
-      id: string;
-      name: string;
-    }[];
-  }[];
+  rooms:
+    | {
+        gameId: string;
+        roomId: string;
+        numPlayers: number;
+        state: "open" | "started";
+        players: {
+          id: string;
+          name: string;
+        }[];
+      }[]
+    | null;
 
   constructor(readonly room: Party.Room) {
-    this.connections = {};
-    this.rooms = [];
+    this.connections = null;
+    this.rooms = null;
+  }
+
+  // Getters for hibernated room
+  async getRooms() {
+    return this.rooms ?? (await this.room.storage.get<typeof this.rooms>("rooms")) ?? [];
+  }
+
+  async getConnections() {
+    return this.connections ?? (await this.room.storage.get<typeof this.connections>("connections")) ?? {};
   }
 
   async onRequest(request: Party.Request) {
-    // read from storage
-    // this.connections = this.connections ?? (await this.room.storage.get("connections")) ?? {};
+    this.rooms = await this.getRooms();
 
     if (request.method === "GET") {
       const startedGames = this.rooms.filter((room) => room.state === "started");
@@ -42,12 +52,16 @@ export default class Lobby implements Party.Server {
     return new Response(null);
   }
 
-  onConnect(conn: Party.Connection, ctx: Party.ConnectionContext) {
+  async onConnect(conn: Party.Connection, ctx: Party.ConnectionContext) {
+    this.connections = await this.getConnections();
+    this.rooms = await this.getRooms();
+
     let userId = new URL(ctx.request.url).searchParams.get("userId") ?? "";
     if (!userId) {
       userId = (Math.random() + 1).toString(36).substring(2);
     }
     this.connections[conn.id] = userId;
+    await this.room.storage.put("connections", this.connections);
 
     const response: ILobbyConnectResponse = {
       type: "connect",
@@ -58,16 +72,21 @@ export default class Lobby implements Party.Server {
     conn.send(JSON.stringify(response));
   }
 
-  onClose(conn: Party.Connection) {
+  async onClose(conn: Party.Connection) {
+    this.connections = await this.getConnections();
     // TODO: should leave any closed games first
     // but only if there is not another open connection
     // is there a race condtion in that scenario?
 
     // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
     delete this.connections[conn.id];
+    await this.room.storage.put("connections", this.connections);
   }
 
-  onMessage(message: string, sender: Party.Connection) {
+  async onMessage(message: string, sender: Party.Connection) {
+    this.connections = (await this.room.storage.get<typeof this.connections>("connections")) ?? {};
+    this.rooms = (await this.room.storage.get<typeof this.rooms>("rooms")) ?? [];
+
     const result = LobbyRequest.safeParse(JSON.parse(message));
     if (!result.success) return;
 
@@ -76,7 +95,7 @@ export default class Lobby implements Party.Server {
 
     switch (data.type) {
       case "create":
-        this.createGameLobbyRoom(data.gameId, userId, data.numPlayers);
+        await this.createGameLobbyRoom(data.gameId, userId, data.numPlayers);
         break;
       case "join":
         this.joinGameLobbyRoom("join", data.roomId, userId);
@@ -87,7 +106,9 @@ export default class Lobby implements Party.Server {
     }
   }
 
-  createGameLobbyRoom(gameId: string, userId: string, numPlayers: number) {
+  async createGameLobbyRoom(gameId: string, userId: string, numPlayers: number) {
+    this.rooms = await this.getRooms();
+
     const roomId = (Math.random() + 1).toString(36).substring(7);
     this.rooms.push({
       gameId,
@@ -96,6 +117,7 @@ export default class Lobby implements Party.Server {
       state: "open",
       players: [{ id: userId, name: "CreatorNoob" }],
     });
+    await this.room.storage.put("rooms", this.rooms);
     const response: ILobbyCreateResponse = {
       type: "create",
       gameId,
@@ -105,7 +127,9 @@ export default class Lobby implements Party.Server {
     this.room.broadcast(JSON.stringify(response));
   }
 
-  joinGameLobbyRoom(type: "join" | "leave", roomId: string, userId: string) {
+  async joinGameLobbyRoom(type: "join" | "leave", roomId: string, userId: string) {
+    this.rooms = await this.getRooms();
+
     const room = this.rooms.find((room) => room.roomId === roomId);
     if (!room) {
       throw new Error("Couldn't find room");
@@ -132,6 +156,7 @@ export default class Lobby implements Party.Server {
     if (room.players.length === room.numPlayers) {
       room.state = "started";
     }
+    await this.room.storage.put("rooms", this.rooms);
 
     const response: ILobbyJoinLeaveResponse = {
       type: "join_leave",

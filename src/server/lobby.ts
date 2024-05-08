@@ -19,7 +19,7 @@ export default class Lobby implements Party.Server {
         gameId: string;
         roomId: string;
         numPlayers: number;
-        state: "open" | "started";
+        state: "public" | "private" | "started" | "closed";
         players: {
           id: string;
           name: string;
@@ -65,7 +65,7 @@ export default class Lobby implements Party.Server {
 
     const response: ILobbyConnectResponse = {
       type: "connect",
-      rooms: this.rooms.filter((room) => room.state === "open").map((x) => `${x.gameId}-${x.roomId}`),
+      rooms: this.rooms.filter((room) => room.state === "public").map((x) => `${x.gameId}-${x.roomId}`),
       userId,
     };
 
@@ -74,9 +74,43 @@ export default class Lobby implements Party.Server {
 
   async onClose(conn: Party.Connection) {
     this.connections = await this.getConnections();
-    // TODO: should leave any closed games first
-    // but only if there is not another open connection
-    // is there a race condtion in that scenario?
+    this.rooms = await this.getRooms();
+
+    const userId = this.connections[conn.id];
+
+    // Skip room cleanup if multiple connected same user id
+    // Race condition here? ie if user closes all tabs at once, what will happen
+    const numTimesUserConnected = Object.values(this.connections).filter((x) => x === userId).length;
+
+    if (numTimesUserConnected === 1) {
+      // TODO: should probably use filter instead of find incase multiple tabs with same uid and diff games
+      const userRoom = this.rooms.find((room) => room.players.map((p) => p.id).includes(userId));
+      if (userRoom) {
+        const index = userRoom.players.findIndex((p) => p.id === userId);
+
+        // User was host, delete the game
+        if (index === 0) {
+          const roomsIndex = this.rooms.findIndex((r) => r.gameId === userRoom.gameId && r.roomId === userRoom.roomId);
+          this.rooms.splice(roomsIndex, 1);
+          const response: ILobbyJoinLeaveResponse = {
+            type: "join_leave",
+            players: [],
+            state: "closed",
+          };
+          this.room.broadcast(JSON.stringify(response));
+        }
+        // User was guest, delete the player
+        else {
+          userRoom.players.splice(index, 1);
+          const response: ILobbyJoinLeaveResponse = {
+            type: "join_leave",
+            players: userRoom.players.map((player) => player.name),
+            state: userRoom.state,
+          };
+          this.room.broadcast(JSON.stringify(response));
+        }
+      }
+    }
 
     // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
     delete this.connections[conn.id];
@@ -95,18 +129,20 @@ export default class Lobby implements Party.Server {
 
     switch (data.type) {
       case "create":
-        await this.createGameLobbyRoom(data.gameId, userId, data.numPlayers);
+        await this.createGameLobbyRoom(data.gameId, userId, data.numPlayers, data.isPrivate);
         break;
       case "join":
-        this.joinGameLobbyRoom("join", data.roomId, userId);
+        await this.joinGameLobbyRoom("join", data.roomId, userId);
         break;
       case "leave":
-        this.joinGameLobbyRoom("leave", data.roomId, userId);
+        await this.joinGameLobbyRoom("leave", data.roomId, userId);
         break;
     }
+
+    console.log("onmessage", data.type, this.rooms);
   }
 
-  async createGameLobbyRoom(gameId: string, userId: string, numPlayers: number) {
+  async createGameLobbyRoom(gameId: string, userId: string, numPlayers: number, isPrivate: boolean) {
     this.rooms = await this.getRooms();
 
     const roomId = (Math.random() + 1).toString(36).substring(7);
@@ -114,7 +150,7 @@ export default class Lobby implements Party.Server {
       gameId,
       roomId,
       numPlayers,
-      state: "open",
+      state: isPrivate ? "private" : "public",
       players: [{ id: userId, name: "CreatorNoob" }],
     });
     await this.room.storage.put("rooms", this.rooms);
@@ -150,7 +186,21 @@ export default class Lobby implements Party.Server {
         return;
       }
       const index = room.players.findIndex((p) => p.id === userId);
-      room?.players.splice(index, 1);
+
+      // User was host, delete the game
+      if (index === 0) {
+        const roomsIndex = this.rooms.findIndex((r) => r.gameId === room.gameId && r.roomId === room.roomId);
+        this.rooms.splice(roomsIndex, 1);
+        const response: ILobbyJoinLeaveResponse = {
+          type: "join_leave",
+          players: [],
+          state: "closed",
+        };
+        this.room.broadcast(JSON.stringify(response));
+        return;
+      } else {
+        room?.players.splice(index, 1);
+      }
     }
 
     if (room.players.length === room.numPlayers) {
@@ -161,7 +211,7 @@ export default class Lobby implements Party.Server {
     const response: ILobbyJoinLeaveResponse = {
       type: "join_leave",
       players: room.players.map((player) => player.name),
-      started: room.state === "started",
+      state: room.state,
     };
     this.room.broadcast(JSON.stringify(response));
   }

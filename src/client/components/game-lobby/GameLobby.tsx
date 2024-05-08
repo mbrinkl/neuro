@@ -3,7 +3,12 @@ import { useEffect, useState } from "react";
 import type { IGameDef } from "../../../shared/types";
 import usePartySocket from "partysocket/react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { LobbyResponse, type ILobbyCreateRequest, type ILobbyJoinRequest } from "../../../shared/lobby/schema";
+import {
+  LobbyResponse,
+  type ILobbyCreateRequest,
+  type ILobbyJoinRequest,
+  type ILobbyLeaveRequest,
+} from "../../../shared/lobby/schema";
 import { CopyGameLink } from "./CopyGameLink";
 
 interface IPreGameProps {
@@ -43,19 +48,19 @@ export const GameLobby = ({ gameDef }: IPreGameProps) => {
         case "create":
           setIsCreating(false);
           setSearchParams({ id: data.roomId });
-          setPlayers(["hosty"]);
+          setPlayers(data.players);
           break;
         case "join_leave":
           setPlayers(data.players);
-          onRoomStarted();
+          if (data.state === "started") {
+            onRoomStarted();
+          } else if (data.state === "closed") {
+            setSearchParams(undefined);
+            setPlayers([]);
+            // if closed and was host, back to creation
+            // else if not host, show error HOST CANCELLED and link back to main lobby
+          }
           break;
-        // if (evt.data === "cancelled") {
-        //   // kick everyone out, notify that host cancelled
-        //   // HOST: back to create screen,
-        //   //  reset lobbyId
-        //   // OTHER: show error HOST CANCELLED
-        //   //  maybe show link back to main lobby idk
-        // }
       }
     },
   });
@@ -78,12 +83,24 @@ export const GameLobby = ({ gameDef }: IPreGameProps) => {
   };
 
   const onCancelClick = () => {
-    socket.send("Leave");
+    if (roomId) {
+      setSearchParams(undefined);
+      const request: ILobbyLeaveRequest = {
+        type: "leave",
+        roomId,
+      };
+      socket.send(JSON.stringify(request));
+    }
   };
 
   const onCreateClick = () => {
     setIsCreating(true);
-    const request: ILobbyCreateRequest = { type: "create", gameId: gameDef.id, numPlayers: targetNumPlayers };
+    const request: ILobbyCreateRequest = {
+      type: "create",
+      gameId: gameDef.id,
+      numPlayers: targetNumPlayers,
+      isPrivate,
+    };
     socket.send(JSON.stringify(request));
   };
 
@@ -96,6 +113,7 @@ export const GameLobby = ({ gameDef }: IPreGameProps) => {
       <Button onClick={disableControls ? onCancelClick : onCreateClick} loading={isCreating} disabled={isCreating}>
         {disableControls ? "Cancel" : "Create"}
       </Button>
+      <div>Name: {gameDef.name}</div>
       {roomId && <CopyGameLink />}
       <div>{targetNumPlayers}</div>
       <div>

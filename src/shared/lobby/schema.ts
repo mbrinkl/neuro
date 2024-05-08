@@ -4,6 +4,7 @@ export const LobbyCreateRequest = z.object({
   type: z.literal("create"),
   gameId: z.string(),
   numPlayers: z.number(),
+  isPrivate: z.boolean(),
 });
 
 export const LobbyCreateResponse = z.object({
@@ -26,7 +27,7 @@ export const LobbyLeaveRequest = z.object({
 export const LobbyJoinLeaveResponse = z.object({
   type: z.literal("join_leave"),
   players: z.string().array(),
-  started: z.boolean(),
+  state: z.union([z.literal("public"), z.literal("private"), z.literal("started"), z.literal("closed")]),
 });
 
 export const LobbyConnectResponse = z.object({
@@ -43,3 +44,4 @@ export type ILobbyCreateResponse = z.infer<typeof LobbyCreateResponse>;
 export type ILobbyConnectResponse = z.infer<typeof LobbyConnectResponse>;
 export type ILobbyJoinLeaveResponse = z.infer<typeof LobbyJoinLeaveResponse>;
 export type ILobbyJoinRequest = z.infer<typeof LobbyJoinRequest>;
+export type ILobbyLeaveRequest = z.infer<typeof LobbyLeaveRequest>;

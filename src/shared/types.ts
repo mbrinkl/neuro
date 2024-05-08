@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 export interface IGame<T extends IBaseGameState = any> {
   G: T;
   ctx: IGameContext;

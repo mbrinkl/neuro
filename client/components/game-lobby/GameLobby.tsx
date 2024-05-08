@@ -1,15 +1,16 @@
 import { Button, Checkbox, Slider } from "@mantine/core";
 import { useEffect, useState } from "react";
-import type { IGameDef } from "../../shared/config";
+import type { IGameDef } from "../../../shared/config";
 import usePartySocket from "partysocket/react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { LobbyResponse, type ILobbyCreateRequest, type ILobbyJoinRequest } from "../../shared/lobby/schema";
+import { LobbyResponse, type ILobbyCreateRequest, type ILobbyJoinRequest } from "../../../shared/lobby/schema";
+import { CopyGameLink } from "./CopyGameLink";
 
 interface IPreGameProps {
   gameDef: IGameDef;
 }
 
-export const PreGame = ({ gameDef }: IPreGameProps) => {
+export const GameLobby = ({ gameDef }: IPreGameProps) => {
   // TODO: allow host kicking?
 
   const [searchParams, setSearchParams] = useSearchParams();
@@ -95,7 +96,7 @@ export const PreGame = ({ gameDef }: IPreGameProps) => {
       <Button onClick={disableControls ? onCancelClick : onCreateClick} loading={isCreating} disabled={isCreating}>
         {disableControls ? "Cancel" : "Create"}
       </Button>
-      {roomId && <div>Copy Link Here</div>}
+      {roomId && <CopyGameLink />}
       <div>{targetNumPlayers}</div>
       <div>
         {players.map((p) => (

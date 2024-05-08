@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import usePartySocket from "partysocket/react";
-import { type IGameDef, type IGame, executeMove } from "../../shared/config";
-import { Loader } from "@mantine/core";
+import { type IGameDef, type IGame, executeMove } from "../../../shared/config";
+import { GameBoard } from "./GameBoard";
 
 interface IGameProps {
   gameDef: IGameDef;
@@ -10,9 +10,10 @@ interface IGameProps {
 
 export const Game = (props: IGameProps) => {
   const { roomId } = useParams();
-  const { Board, flow } = props.gameDef.config;
   const [game, setGame] = useState<IGame | null>(null);
   const [error, setError] = useState<string>();
+
+  const { Board, flow } = props.gameDef.config;
 
   // TODO: should stop from trying to reconnect after getting error?
   const socket = usePartySocket({
@@ -53,18 +54,10 @@ export const Game = (props: IGameProps) => {
     return modifiedMoves;
   }, [flow, socket.id]);
 
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
-
-  if (!game) {
-    return <Loader color="blue" />;
-  }
-
   return (
     <div>
       <Link to="/">Lobby</Link>
-      <Board G={game.G} ctx={game.ctx} playerId={game.G.players[socket.id].id} moves={moves} />
+      <GameBoard Board={Board} game={game} moves={moves} userId="" error={error} />
     </div>
   );
 };

@@ -1,11 +1,11 @@
 import { createRoot } from "react-dom/client";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import { createTheme, MantineProvider } from "@mantine/core";
-import { Lobby } from "./components/Lobby";
+import { Lobby } from "./components/main-lobby/Lobby";
 import { NotFound } from "./components/NotFound";
-import { Game } from "./components/Game";
+import { Game } from "./components/game/Game";
 import { gameDefs } from "../shared/config";
-import { PreGame } from "./components/PreGame";
+import { GameLobby } from "./components/game-lobby/GameLobby";
 import "@mantine/core/styles.css";
 
 const theme = createTheme({
@@ -20,7 +20,7 @@ const router = createBrowserRouter([
   ...gameDefs.flatMap((gameDef) => [
     {
       path: `/${gameDef.id}`,
-      element: <PreGame gameDef={gameDef} />,
+      element: <GameLobby gameDef={gameDef} />,
     },
     {
       path: `/${gameDef.id}/:roomId`,

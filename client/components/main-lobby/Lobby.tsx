@@ -1,9 +1,9 @@
-import { gameDefs } from "../../shared/config";
+import { gameDefs } from "../../../shared/config";
 import usePartySocket from "partysocket/react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Anchor, Button, Flex, rem } from "@mantine/core";
-import { LobbyResponse } from "../../shared/lobby/schema";
+import { LobbyResponse } from "../../../shared/lobby/schema";
 import { IconSourceCode } from "@tabler/icons-react";
 
 export const Lobby = () => {

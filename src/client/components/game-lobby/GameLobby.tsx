@@ -1,4 +1,4 @@
-import { Button, Checkbox, Slider } from "@mantine/core";
+import { Button, Checkbox } from "@mantine/core";
 import { useEffect, useState } from "react";
 import type { IGameDef } from "../../../shared/types";
 import usePartySocket from "partysocket/react";
@@ -10,14 +10,13 @@ import {
   type ILobbyLeaveRequest,
 } from "../../../shared/lobby/schema";
 import { CopyGameLink } from "./CopyGameLink";
+import { NumberPlayersSlider } from "./NumPlayersSlider";
 
 interface IPreGameProps {
   gameDef: IGameDef;
 }
 
 export const GameLobby = ({ gameDef }: IPreGameProps) => {
-  // TODO: allow host kicking?
-
   const [searchParams, setSearchParams] = useSearchParams();
   const [userId, setUserId] = useState(localStorage.getItem("userId"));
   const [targetNumPlayers, setTargetNumPlayers] = useState(gameDef.minPlayers);
@@ -104,43 +103,28 @@ export const GameLobby = ({ gameDef }: IPreGameProps) => {
     socket.send(JSON.stringify(request));
   };
 
-  const shouldShowSlider: boolean = gameDef.minPlayers !== gameDef.maxPlayers;
   const disableControls: boolean = isCreating || !!roomId;
 
   // only show button if host?
   return (
     <div>
+      <div>Game: {gameDef.name}</div>
       <Button onClick={disableControls ? onCancelClick : onCreateClick} loading={isCreating} disabled={isCreating}>
         {disableControls ? "Cancel" : "Create"}
       </Button>
-      <div>Name: {gameDef.name}</div>
       {roomId && <CopyGameLink />}
-      <div>{targetNumPlayers}</div>
       <div>
         {players.map((p) => (
           <div>{p}</div>
         ))}
       </div>
-      {shouldShowSlider && (
-        <Slider
-          color="blue"
-          value={targetNumPlayers}
-          onChange={setTargetNumPlayers}
-          min={gameDef.minPlayers}
-          max={gameDef.maxPlayers}
-          marks={[
-            {
-              value: gameDef.minPlayers,
-              label: gameDef.minPlayers,
-            },
-            {
-              value: gameDef.maxPlayers,
-              label: gameDef.maxPlayers,
-            },
-          ]}
-          disabled={disableControls}
-        />
-      )}
+      <NumberPlayersSlider
+        value={targetNumPlayers}
+        min={gameDef.minPlayers}
+        max={gameDef.maxPlayers}
+        disabled={disableControls}
+        onChange={setTargetNumPlayers}
+      />
       <Checkbox
         py="xl"
         label="Private (players can only join by invitation link)"

@@ -37,7 +37,7 @@ export const Lobby = () => {
       {roomIds.map((room) => {
         const [gameId, roomId] = room.split("-");
         return (
-          <Link key={room} to={`/${gameId}/${roomId}`}>
+          <Link key={room} to={`/${gameId}?id=${roomId}`}>
             {room}
           </Link>
         );

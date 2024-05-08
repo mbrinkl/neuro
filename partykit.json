@@ -1,14 +1,14 @@
 {
   "$schema": "https://www.partykit.io/schema.json",
   "name": "neuro",
-  "main": "server/lobby.ts",
+  "main": "src/server/lobby.ts",
   "parties": {
-    "game": "server/game.ts"
+    "game": "src/server/game.ts"
   },
   "compatibilityDate": "2024-05-02",
   "serve": {
     "path": "public",
-    "build": "client/main.tsx",
+    "build": "src/client/main.tsx",
     "singlePageApp": true
   }
 }

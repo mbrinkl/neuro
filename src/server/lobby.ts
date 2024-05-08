@@ -48,7 +48,6 @@ export default class Lobby implements Party.Server {
       userId = (Math.random() + 1).toString(36).substring(2);
     }
     this.connections[conn.id] = userId;
-    console.log("in on connect", userId);
 
     const response: ILobbyConnectResponse = {
       type: "connect",
@@ -86,8 +85,6 @@ export default class Lobby implements Party.Server {
         this.joinGameLobbyRoom("leave", data.roomId, userId);
         break;
     }
-
-    console.log("after messsage", this.rooms);
   }
 
   createGameLobbyRoom(gameId: string, userId: string, numPlayers: number) {

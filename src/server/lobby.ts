@@ -5,32 +5,32 @@ import {
   type ILobbyCreateResponse,
   type ILobbyJoinLeaveResponse,
 } from "../shared/lobby/schema";
+import { createRoom } from "./matchmaker";
+
+export interface ILobbyRoom {
+  gameId: string;
+  roomId: string;
+  numPlayers: number;
+  state: "public" | "private" | "started" | "closed";
+  players: {
+    id: string;
+    name: string;
+  }[];
+}
 
 export default class Lobby implements Party.Server {
   options: Party.ServerOptions = {
     hibernate: true,
   };
 
-  // connectionId: userId
-  connections: Record<string, string> | null;
+  connections?: Record<string, string>;
+  rooms?: ILobbyRoom[];
 
-  rooms:
-    | {
-        gameId: string;
-        roomId: string;
-        numPlayers: number;
-        state: "public" | "private" | "started" | "closed";
-        players: {
-          id: string;
-          name: string;
-        }[];
-      }[]
-    | null;
+  constructor(readonly room: Party.Room) {}
 
-  constructor(readonly room: Party.Room) {
-    this.connections = null;
-    this.rooms = null;
-  }
+  // async onStart() {
+  //   this.room.storage.deleteAll();
+  // }
 
   // Getters for hibernated room
   async getRooms() {
@@ -44,9 +44,12 @@ export default class Lobby implements Party.Server {
   async onRequest(request: Party.Request) {
     this.rooms = await this.getRooms();
 
-    if (request.method === "GET") {
-      const startedGames = this.rooms.filter((room) => room.state === "started");
-      return new Response(JSON.stringify(startedGames.map((g) => `${g.gameId}-${g.roomId}`)));
+    if (request.method === "POST") {
+      const data = (await request.json()) as { gameId: string; roomId: string };
+      const game = this.rooms.find(
+        (room) => room.state === "started" && room.gameId === data.gameId && room.roomId === data.roomId,
+      );
+      return new Response(JSON.stringify(game ?? null));
     }
 
     return new Response(null);
@@ -145,19 +148,13 @@ export default class Lobby implements Party.Server {
   async createGameLobbyRoom(gameId: string, userId: string, numPlayers: number, isPrivate: boolean) {
     this.rooms = await this.getRooms();
 
-    const roomId = (Math.random() + 1).toString(36).substring(7);
-    this.rooms.push({
-      gameId,
-      roomId,
-      numPlayers,
-      state: isPrivate ? "private" : "public",
-      players: [{ id: userId, name: "CreatorNoob" }],
-    });
+    const room = createRoom(gameId, userId, numPlayers, isPrivate);
+    this.rooms.push(room);
     await this.room.storage.put("rooms", this.rooms);
     const response: ILobbyCreateResponse = {
       type: "create",
       gameId,
-      roomId,
+      roomId: room.roomId,
       players: ["CreatorNoob"],
     };
     this.room.broadcast(JSON.stringify(response));

@@ -17,6 +17,8 @@ export const LobbyCreateResponse = z.object({
 export const LobbyJoinRequest = z.object({
   type: z.literal("join"),
   roomId: z.string(),
+  playerName: z.string(),
+  playerToken: z.string(),
 });
 
 export const LobbyLeaveRequest = z.object({

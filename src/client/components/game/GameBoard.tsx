@@ -18,5 +18,5 @@ export const GameBoard = ({ Board, game, moves, userId, error }: IGameBoardProps
     return <Loader color="blue" />;
   }
 
-  return <Board G={game.G} ctx={game.ctx} playerId={game.G.players[userId].id} moves={moves} />;
+  return <Board G={game.G} ctx={game.ctx} playerId={game.G.players[userId]?.id ?? -1} moves={moves} />;
 };
